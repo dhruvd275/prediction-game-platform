@@ -1,0 +1,16 @@
+services:
+  db:
+    image: postgres:16
+    container_name: pg_prediction_game
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: pguser
+      POSTGRES_PASSWORD: pgpass
+      POSTGRES_DB: prediction_game
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata_prediction_game:/var/lib/postgresql/data
+
+volumes:
+  pgdata_prediction_game:

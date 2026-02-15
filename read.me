@@ -1,0 +1,47 @@
+> To make a container and up running:
+docker compose up -d
+
+> To verify and check the status:
+docker ps
+
+>Connect to database:
+docker exec -it pg_prediction_game psql -U pguser -d prediction_game
+
+>Test database:
+SELECT 1;
+\q
+
+>Start development server:
+npm run dev
+
+>Test health route:
+curl http://localhost:3000/health
+
+---------------------------------------------------------------------------------------
+Create Database Tables
+
+>Run SQL file:
+docker exec -i pg_prediction_game psql -U pguser -d prediction_game < sql/001_init.sql
+
+>Verify tables:
+docker exec -it pg_prediction_game psql -U pguser -d prediction_game
+\dt
+\q
+
+----------------------------------------------------------------------------------------------
+>Test Register Endpoint:
+curl -X POST http://localhost:3000/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"email":"test1@example.com","password":"secret123"}'
+
+>> Test for the duplicate using same command
+
+>Test Login Endpoint
+curl -X POST http://localhost:3000/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"test1@example.com","password":"secret123"}'
+
+>Wrong password:
+curl -X POST http://localhost:3000/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"test1@example.com","password":"wrongpass"}'
