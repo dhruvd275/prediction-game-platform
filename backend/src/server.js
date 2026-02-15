@@ -224,6 +224,80 @@ app.post("/predictions", authMiddleware, async (req, res) => {
   }
 });
 
+app.post("/markets/:id/resolve", async (req, res) => {
+  try {
+    const adminKey = req.headers["x-admin-key"];
+
+    if (adminKey !== process.env.ADMIN_SECRET) {
+      return res.status(403).json({ message: "Unauthorized" });
+    }
+
+    const marketId = req.params.id;
+    const { result } = req.body;
+
+    if (!result) {
+      return res.status(400).json({ message: "Result value required" });
+    }
+
+    // Get market
+    const marketResult = await pool.query(
+      "SELECT * FROM markets WHERE id=$1",
+      [marketId]
+    );
+
+    if (marketResult.rows.length === 0) {
+      return res.status(404).json({ message: "Market not found" });
+    }
+
+    const market = marketResult.rows[0];
+
+    if (market.status === "RESOLVED") {
+      return res.status(400).json({ message: "Market already resolved" });
+    }
+
+    // Update market result
+    await pool.query(
+      "UPDATE markets SET result=$1, status='RESOLVED' WHERE id=$2",
+      [result, marketId]
+    );
+
+    // Get all predictions
+    const predictions = await pool.query(
+      "SELECT * FROM predictions WHERE market_id=$1",
+      [marketId]
+    );
+
+    for (const prediction of predictions.rows) {
+      if (prediction.selection === result) {
+        const payout = parseFloat(prediction.stake) * parseFloat(market.multiplier);
+
+        // Add payout to user
+        await pool.query(
+          "UPDATE users SET credits = credits + $1 WHERE id=$2",
+          [payout, prediction.user_id]
+        );
+
+        // Mark prediction won
+        await pool.query(
+          "UPDATE predictions SET status='WON' WHERE id=$1",
+          [prediction.id]
+        );
+      } else {
+        await pool.query(
+          "UPDATE predictions SET status='LOST' WHERE id=$1",
+          [prediction.id]
+        );
+      }
+    }
+
+    res.json({ message: "Market resolved successfully" });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
