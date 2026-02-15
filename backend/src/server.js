@@ -156,6 +156,74 @@ app.get("/events/:id/markets", async (req, res) => {
   }
 });
 
+app.post("/predictions", authMiddleware, async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    const { market_id, selection, stake } = req.body;
+
+    if (!market_id || !selection || !stake) {
+      return res.status(400).json({ message: "market_id, selection and stake required" });
+    }
+
+    if (stake <= 0) {
+      return res.status(400).json({ message: "Stake must be greater than 0" });
+    }
+
+    // Get market
+    const marketResult = await pool.query(
+      "SELECT * FROM markets WHERE id=$1",
+      [market_id]
+    );
+
+    if (marketResult.rows.length === 0) {
+      return res.status(404).json({ message: "Market not found" });
+    }
+
+    const market = marketResult.rows[0];
+
+    if (market.status !== "OPEN") {
+      return res.status(400).json({ message: "Market not open" });
+    }
+
+    if (new Date() > new Date(market.cutoff_at)) {
+      return res.status(400).json({ message: "Cutoff time passed" });
+    }
+
+    // Get user credits
+    const userResult = await pool.query(
+      "SELECT credits FROM users WHERE id=$1",
+      [userId]
+    );
+
+    const userCredits = parseFloat(userResult.rows[0].credits);
+
+    if (userCredits < stake) {
+      return res.status(400).json({ message: "Insufficient credits" });
+    }
+
+    // Deduct credits
+    await pool.query(
+      "UPDATE users SET credits = credits - $1 WHERE id=$2",
+      [stake, userId]
+    );
+
+    // Insert prediction
+    await pool.query(
+      "INSERT INTO predictions (user_id, market_id, selection, stake) VALUES ($1, $2, $3, $4)",
+      [userId, market_id, selection, stake]
+    );
+
+    res.json({ message: "Prediction submitted successfully" });
+
+  } catch (err) {
+    console.error(err);
+    if (err.code === "23505") {
+      return res.status(400).json({ message: "Already predicted this market" });
+    }
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
