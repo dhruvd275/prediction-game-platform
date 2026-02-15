@@ -127,6 +127,36 @@ app.get("/me", authMiddleware, async (req, res) => {
   }
 });
 
+app.get("/events", async (req, res) => {
+  try {
+    const result = await pool.query(
+      "SELECT id, sport, name, starts_at FROM events ORDER BY starts_at ASC"
+    );
+
+    res.json({ events: result.rows });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Failed to fetch events" });
+  }
+});
+
+app.get("/events/:id/markets", async (req, res) => {
+  try {
+    const eventId = req.params.id;
+
+    const result = await pool.query(
+      "SELECT id, type, multiplier, cutoff_at, status FROM markets WHERE event_id=$1 ORDER BY id",
+      [eventId]
+    );
+
+    res.json({ markets: result.rows });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Failed to fetch markets" });
+  }
+});
+
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`API running on http://localhost:${PORT}`);
