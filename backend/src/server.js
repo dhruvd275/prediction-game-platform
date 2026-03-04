@@ -157,74 +157,128 @@ app.get("/events/:id/markets", async (req, res) => {
 });
 
 app.post("/predictions", authMiddleware, async (req, res) => {
+  const client = await pool.connect();
+
   try {
     const userId = req.user.userId;
     const { market_id, selection, stake } = req.body;
 
-    if (!market_id || !selection || !stake) {
+    if (!market_id || !selection || stake === undefined || stake === null) {
       return res.status(400).json({ message: "market_id, selection and stake required" });
     }
 
-    if (stake <= 0) {
+    const stakeNum = Number(stake);
+    if (!Number.isFinite(stakeNum) || stakeNum <= 0) {
       return res.status(400).json({ message: "Stake must be greater than 0" });
     }
 
-    // Get market
-    const marketResult = await pool.query(
-      "SELECT * FROM markets WHERE id=$1",
+    await client.query("BEGIN");
+
+    // Lock the market row so status/cutoff can't change mid-request
+    const marketResult = await client.query(
+      "SELECT id, status, cutoff_at FROM markets WHERE id=$1 FOR UPDATE",
       [market_id]
     );
 
     if (marketResult.rows.length === 0) {
+      await client.query("ROLLBACK");
       return res.status(404).json({ message: "Market not found" });
     }
 
     const market = marketResult.rows[0];
 
     if (market.status !== "OPEN") {
+      await client.query("ROLLBACK");
       return res.status(400).json({ message: "Market not open" });
     }
 
     if (new Date() > new Date(market.cutoff_at)) {
+      await client.query("ROLLBACK");
       return res.status(400).json({ message: "Cutoff time passed" });
     }
 
-    // Get user credits
-    const userResult = await pool.query(
-      "SELECT credits FROM users WHERE id=$1",
-      [userId]
+    // Atomically deduct credits only if user has enough
+    const updatedUser = await client.query(
+      "UPDATE users SET credits = credits - $1 WHERE id=$2 AND credits >= $1 RETURNING credits",
+      [stakeNum, userId]
     );
 
-    const userCredits = parseFloat(userResult.rows[0].credits);
-
-    if (userCredits < stake) {
+    if (updatedUser.rows.length === 0) {
+      await client.query("ROLLBACK");
       return res.status(400).json({ message: "Insufficient credits" });
     }
 
-    // Deduct credits
-    await pool.query(
-      "UPDATE users SET credits = credits - $1 WHERE id=$2",
-      [stake, userId]
-    );
-
-    // Insert prediction
-    await pool.query(
+    // Insert prediction (unique constraint prevents duplicate per market)
+    await client.query(
       "INSERT INTO predictions (user_id, market_id, selection, stake) VALUES ($1, $2, $3, $4)",
-      [userId, market_id, selection, stake]
+      [userId, market_id, selection, stakeNum]
     );
 
-    res.json({ message: "Prediction submitted successfully" });
+    await client.query("COMMIT");
 
+    return res.json({
+      message: "Prediction submitted successfully",
+      credits: updatedUser.rows[0].credits,
+    });
   } catch (err) {
+    try {
+      await client.query("ROLLBACK");
+    } catch (_) {
+      // ignore rollback errors
+    }
+
     console.error(err);
+
     if (err.code === "23505") {
       return res.status(400).json({ message: "Already predicted this market" });
     }
-    res.status(500).json({ message: "Server error" });
+
+    return res.status(500).json({ message: "Server error" });
+  } finally {
+    client.release();
+  }
+});
+
+app.get("/predictions/me", authMiddleware, async (req, res) => {
+  try {
+    const userId = req.user.userId;
+
+    const result = await pool.query(
+      `
+      SELECT 
+        p.id as prediction_id,
+        p.selection,
+        p.stake,
+        p.status as prediction_status,
+        p.submitted_at,
+        m.id as market_id,
+        m.type as market_type,
+        m.multiplier,
+        m.status as market_status,
+        m.result as market_result,
+        e.id as event_id,
+        e.sport,
+        e.name as event_name,
+        e.starts_at
+      FROM predictions p
+      JOIN markets m ON p.market_id = m.id
+      JOIN events e ON m.event_id = e.id
+      WHERE p.user_id = $1
+      ORDER BY p.submitted_at DESC
+      `,
+      [userId]
+    );
+
+    res.json({ predictions: result.rows });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Failed to fetch predictions" });
   }
 });
 
 app.post("/markets/:id/resolve", async (req, res) => {
+  const client = await pool.connect();
+
   try {
     const adminKey = req.headers["x-admin-key"];
 
@@ -239,59 +293,119 @@ app.post("/markets/:id/resolve", async (req, res) => {
       return res.status(400).json({ message: "Result value required" });
     }
 
-    // Get market
-    const marketResult = await pool.query(
-      "SELECT * FROM markets WHERE id=$1",
+    await client.query("BEGIN");
+
+    // Lock market row so it can't be resolved twice
+    const marketResult = await client.query(
+      "SELECT id, status, multiplier FROM markets WHERE id=$1 FOR UPDATE",
       [marketId]
     );
 
     if (marketResult.rows.length === 0) {
+      await client.query("ROLLBACK");
       return res.status(404).json({ message: "Market not found" });
     }
 
     const market = marketResult.rows[0];
 
     if (market.status === "RESOLVED") {
+      await client.query("ROLLBACK");
       return res.status(400).json({ message: "Market already resolved" });
     }
 
-    // Update market result
-    await pool.query(
+    if (market.status === "OPEN") {
+      await client.query("ROLLBACK");
+      return res
+        .status(400)
+        .json({ message: "Market is still OPEN. Lock it after cutoff before resolving." });
+    }
+
+    // Update market with result and mark resolved
+    await client.query(
       "UPDATE markets SET result=$1, status='RESOLVED' WHERE id=$2",
       [result, marketId]
     );
 
-    // Get all predictions
-    const predictions = await pool.query(
-      "SELECT * FROM predictions WHERE market_id=$1",
+    // Lock predictions rows for consistent updates
+    const predictions = await client.query(
+      "SELECT id, user_id, selection, stake FROM predictions WHERE market_id=$1 FOR UPDATE",
       [marketId]
     );
 
+    let wonCount = 0;
+    let lostCount = 0;
+
     for (const prediction of predictions.rows) {
       if (prediction.selection === result) {
-        const payout = parseFloat(prediction.stake) * parseFloat(market.multiplier);
+        const payout = Number(prediction.stake) * Number(market.multiplier);
 
-        // Add payout to user
-        await pool.query(
+        await client.query(
           "UPDATE users SET credits = credits + $1 WHERE id=$2",
           [payout, prediction.user_id]
         );
 
-        // Mark prediction won
-        await pool.query(
+        await client.query(
           "UPDATE predictions SET status='WON' WHERE id=$1",
           [prediction.id]
         );
+
+        wonCount += 1;
       } else {
-        await pool.query(
+        await client.query(
           "UPDATE predictions SET status='LOST' WHERE id=$1",
           [prediction.id]
         );
+
+        lostCount += 1;
       }
     }
 
-    res.json({ message: "Market resolved successfully" });
+    await client.query("COMMIT");
 
+    return res.json({
+      message: "Market resolved successfully",
+      market_id: Number(marketId),
+      predictions_total: predictions.rowCount,
+      won: wonCount,
+      lost: lostCount,
+    });
+  } catch (err) {
+    try {
+      await client.query("ROLLBACK");
+    } catch (_) {
+      // ignore rollback errors
+    }
+
+    console.error(err);
+    return res.status(500).json({ message: "Server error" });
+  } finally {
+    client.release();
+  }
+});
+
+app.post("/markets/auto-lock", async (req, res) => {
+  try {
+    const adminKey = req.headers["x-admin-key"];
+
+    if (adminKey !== process.env.ADMIN_SECRET) {
+      return res.status(403).json({ message: "Unauthorized" });
+    }
+
+    const result = await pool.query(
+      `
+      UPDATE markets
+      SET status = 'LOCKED'
+      WHERE status = 'OPEN'
+        AND cutoff_at <= NOW()
+      RETURNING id, event_id, type, cutoff_at, status
+      `
+    );
+
+    res.json({
+      message: "Auto-lock complete",
+      locked_count: result.rowCount,
+      locked_markets: result.rows,
+    });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Server error" });
