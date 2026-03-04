@@ -276,6 +276,41 @@ app.get("/predictions/me", authMiddleware, async (req, res) => {
   }
 });
 
+app.get("/markets/:id", async (req, res) => {
+  try {
+    const marketId = req.params.id;
+
+    const result = await pool.query(
+      `
+      SELECT
+        m.id as market_id,
+        m.type as market_type,
+        m.multiplier,
+        m.cutoff_at,
+        m.status,
+        m.result,
+        e.id as event_id,
+        e.sport,
+        e.name as event_name,
+        e.starts_at
+      FROM markets m
+      JOIN events e ON m.event_id = e.id
+      WHERE m.id = $1
+      `,
+      [marketId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: "Market not found" });
+    }
+
+    res.json({ market: result.rows[0] });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Failed to fetch market" });
+  }
+});
+
 app.post("/markets/:id/resolve", async (req, res) => {
   const client = await pool.connect();
 
