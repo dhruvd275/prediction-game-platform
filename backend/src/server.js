@@ -11,7 +11,16 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Health check route
+// ─── Admin Auth Helper ────────────────────────────────────────────────────────
+function adminAuth(req, res) {
+  if (req.headers["x-admin-key"] !== process.env.ADMIN_SECRET) {
+    res.status(403).json({ message: "Unauthorized" });
+    return false;
+  }
+  return true;
+}
+
+// ─── Health ───────────────────────────────────────────────────────────────────
 app.get("/health", (req, res) => {
   res.json({ status: "ok", message: "Backend is running" });
 });
@@ -26,11 +35,11 @@ app.get("/db-test", async (req, res) => {
   }
 });
 
+// ─── Auth ─────────────────────────────────────────────────────────────────────
 app.post("/auth/register", async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // basic validation
     if (!email || !password) {
       return res.status(400).json({ message: "Email and password are required" });
     }
@@ -38,25 +47,18 @@ app.post("/auth/register", async (req, res) => {
       return res.status(400).json({ message: "Password must be at least 6 characters" });
     }
 
-    // check if email already exists
     const existing = await pool.query("SELECT id FROM users WHERE email=$1", [email]);
     if (existing.rows.length > 0) {
       return res.status(409).json({ message: "Email already registered" });
     }
 
-    // hash password
     const passwordHash = await bcrypt.hash(password, 10);
-
-    // insert user (credits default = 1000 from DB)
     const result = await pool.query(
       "INSERT INTO users (email, password_hash) VALUES ($1, $2) RETURNING id, email, credits, created_at",
       [email, passwordHash]
     );
 
-    return res.status(201).json({
-      message: "User registered",
-      user: result.rows[0],
-    });
+    return res.status(201).json({ message: "User registered", user: result.rows[0] });
   } catch (err) {
     console.error(err);
     return res.status(500).json({ message: "Server error" });
@@ -71,7 +73,6 @@ app.post("/auth/login", async (req, res) => {
       return res.status(400).json({ message: "Email and password are required" });
     }
 
-    // find user
     const result = await pool.query(
       "SELECT id, email, password_hash, credits FROM users WHERE email=$1",
       [email]
@@ -82,14 +83,11 @@ app.post("/auth/login", async (req, res) => {
     }
 
     const user = result.rows[0];
-
-    // check password
     const ok = await bcrypt.compare(password, user.password_hash);
     if (!ok) {
       return res.status(401).json({ message: "Invalid email or password" });
     }
 
-    // create token
     const token = jwt.sign(
       { userId: user.id, email: user.email },
       process.env.JWT_SECRET,
@@ -107,13 +105,12 @@ app.post("/auth/login", async (req, res) => {
   }
 });
 
+// ─── User ─────────────────────────────────────────────────────────────────────
 app.get("/me", authMiddleware, async (req, res) => {
   try {
-    const userId = req.user.userId;
-
     const result = await pool.query(
       "SELECT id, email, credits, created_at FROM users WHERE id=$1",
-      [userId]
+      [req.user.userId]
     );
 
     if (result.rows.length === 0) {
@@ -127,12 +124,12 @@ app.get("/me", authMiddleware, async (req, res) => {
   }
 });
 
+// ─── Events ───────────────────────────────────────────────────────────────────
 app.get("/events", async (req, res) => {
   try {
     const result = await pool.query(
       "SELECT id, sport, name, starts_at FROM events ORDER BY starts_at ASC"
     );
-
     res.json({ events: result.rows });
   } catch (err) {
     console.error(err);
@@ -140,12 +137,38 @@ app.get("/events", async (req, res) => {
   }
 });
 
-app.get("/events/:id/markets", async (req, res) => {
+app.get("/events/:id", async (req, res) => {
   try {
-    const eventId = req.params.id;
+    const eventId = parseInt(req.params.id);
+    if (isNaN(eventId)) {
+      return res.status(400).json({ message: "Invalid event id" });
+    }
 
     const result = await pool.query(
-      "SELECT id, type, multiplier, cutoff_at, status FROM markets WHERE event_id=$1 ORDER BY id",
+      "SELECT id, sport, name, starts_at FROM events WHERE id=$1",
+      [eventId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: "Event not found" });
+    }
+
+    res.json({ event: result.rows[0] });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Failed to fetch event" });
+  }
+});
+
+app.get("/events/:id/markets", async (req, res) => {
+  try {
+    const eventId = parseInt(req.params.id);
+    if (isNaN(eventId)) {
+      return res.status(400).json({ message: "Invalid event id" });
+    }
+
+    const result = await pool.query(
+      "SELECT id, type, multiplier, cutoff_at, status, options FROM markets WHERE event_id=$1 ORDER BY id",
       [eventId]
     );
 
@@ -156,6 +179,68 @@ app.get("/events/:id/markets", async (req, res) => {
   }
 });
 
+// ─── Markets ──────────────────────────────────────────────────────────────────
+app.get("/markets/:id", async (req, res) => {
+  try {
+    const marketId = parseInt(req.params.id);
+    if (isNaN(marketId)) {
+      return res.status(400).json({ message: "Invalid market id" });
+    }
+
+    const result = await pool.query(
+      `SELECT
+        m.id          AS market_id,
+        m.type        AS market_type,
+        m.multiplier,
+        m.cutoff_at,
+        m.status,
+        m.result,
+        m.options,
+        e.id          AS event_id,
+        e.sport,
+        e.name        AS event_name,
+        e.starts_at
+      FROM markets m
+      JOIN events e ON m.event_id = e.id
+      WHERE m.id = $1`,
+      [marketId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: "Market not found" });
+    }
+
+    res.json({ market: result.rows[0] });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Failed to fetch market" });
+  }
+});
+
+app.get("/markets/:id/options", async (req, res) => {
+  try {
+    const marketId = parseInt(req.params.id);
+    if (isNaN(marketId)) {
+      return res.status(400).json({ message: "Invalid market id" });
+    }
+
+    const result = await pool.query(
+      "SELECT options FROM markets WHERE id=$1",
+      [marketId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: "Market not found" });
+    }
+
+    res.json({ options: result.rows[0].options || [] });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Failed to fetch market options" });
+  }
+});
+
+// ─── Predictions ──────────────────────────────────────────────────────────────
 app.post("/predictions", authMiddleware, async (req, res) => {
   const client = await pool.connect();
 
@@ -168,15 +253,15 @@ app.post("/predictions", authMiddleware, async (req, res) => {
     }
 
     const stakeNum = Number(stake);
-    if (!Number.isFinite(stakeNum) || stakeNum <= 0) {
-      return res.status(400).json({ message: "Stake must be greater than 0" });
+    if (!Number.isFinite(stakeNum) || stakeNum < 1) {
+      return res.status(400).json({ message: "Minimum stake is 1 credit" });
     }
 
     await client.query("BEGIN");
 
     // Lock the market row so status/cutoff can't change mid-request
     const marketResult = await client.query(
-      "SELECT id, status, cutoff_at FROM markets WHERE id=$1 FOR UPDATE",
+      "SELECT id, status, cutoff_at, options FROM markets WHERE id=$1 FOR UPDATE",
       [market_id]
     );
 
@@ -195,6 +280,18 @@ app.post("/predictions", authMiddleware, async (req, res) => {
     if (new Date() > new Date(market.cutoff_at)) {
       await client.query("ROLLBACK");
       return res.status(400).json({ message: "Cutoff time passed" });
+    }
+
+    // Validate selection against market options if options are defined
+    if (market.options && Array.isArray(market.options) && market.options.length > 0) {
+      const validCodes = market.options.map(o => o.code);
+      if (!validCodes.includes(selection)) {
+        await client.query("ROLLBACK");
+        return res.status(400).json({
+          message: "Invalid selection",
+          valid_options: validCodes,
+        });
+      }
     }
 
     // Atomically deduct credits only if user has enough
@@ -221,12 +318,7 @@ app.post("/predictions", authMiddleware, async (req, res) => {
       credits: updatedUser.rows[0].credits,
     });
   } catch (err) {
-    try {
-      await client.query("ROLLBACK");
-    } catch (_) {
-      // ignore rollback errors
-    }
-
+    try { await client.query("ROLLBACK"); } catch (_) {}
     console.error(err);
 
     if (err.code === "23505") {
@@ -241,32 +333,28 @@ app.post("/predictions", authMiddleware, async (req, res) => {
 
 app.get("/predictions/me", authMiddleware, async (req, res) => {
   try {
-    const userId = req.user.userId;
-
     const result = await pool.query(
-      `
-      SELECT 
-        p.id as prediction_id,
+      `SELECT
+        p.id            AS prediction_id,
         p.selection,
         p.stake,
-        p.status as prediction_status,
+        p.status        AS prediction_status,
         p.submitted_at,
-        m.id as market_id,
-        m.type as market_type,
+        m.id            AS market_id,
+        m.type          AS market_type,
         m.multiplier,
-        m.status as market_status,
-        m.result as market_result,
-        e.id as event_id,
+        m.status        AS market_status,
+        m.result        AS market_result,
+        e.id            AS event_id,
         e.sport,
-        e.name as event_name,
+        e.name          AS event_name,
         e.starts_at
       FROM predictions p
       JOIN markets m ON p.market_id = m.id
       JOIN events e ON m.event_id = e.id
       WHERE p.user_id = $1
-      ORDER BY p.submitted_at DESC
-      `,
-      [userId]
+      ORDER BY p.submitted_at DESC`,
+      [req.user.userId]
     );
 
     res.json({ predictions: result.rows });
@@ -276,54 +364,58 @@ app.get("/predictions/me", authMiddleware, async (req, res) => {
   }
 });
 
-app.get("/markets/:id", async (req, res) => {
+// ─── Leaderboard ──────────────────────────────────────────────────────────────
+app.get("/leaderboard", async (req, res) => {
   try {
-    const marketId = req.params.id;
+    const limit = Math.min(parseInt(req.query.limit) || 10, 50);
 
     const result = await pool.query(
-      `
-      SELECT
-        m.id as market_id,
-        m.type as market_type,
-        m.multiplier,
-        m.cutoff_at,
-        m.status,
-        m.result,
-        e.id as event_id,
-        e.sport,
-        e.name as event_name,
-        e.starts_at
-      FROM markets m
-      JOIN events e ON m.event_id = e.id
-      WHERE m.id = $1
-      `,
-      [marketId]
+      "SELECT id, email, credits FROM users ORDER BY credits DESC LIMIT $1",
+      [limit]
     );
 
-    if (result.rows.length === 0) {
-      return res.status(404).json({ message: "Market not found" });
-    }
-
-    res.json({ market: result.rows[0] });
+    res.json({ leaderboard: result.rows });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: "Failed to fetch market" });
+    res.status(500).json({ message: "Failed to fetch leaderboard" });
+  }
+});
+
+// ─── Admin: Market Operations ─────────────────────────────────────────────────
+app.post("/markets/auto-lock", async (req, res) => {
+  if (!adminAuth(req, res)) return;
+
+  try {
+    const result = await pool.query(
+      `UPDATE markets
+       SET status = 'LOCKED'
+       WHERE status = 'OPEN' AND cutoff_at <= NOW()
+       RETURNING id, event_id, type, cutoff_at, status`
+    );
+
+    res.json({
+      message: "Auto-lock complete",
+      locked_count: result.rowCount,
+      locked_markets: result.rows,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
   }
 });
 
 app.post("/markets/:id/resolve", async (req, res) => {
+  if (!adminAuth(req, res)) return;
+
   const client = await pool.connect();
 
   try {
-    const adminKey = req.headers["x-admin-key"];
-
-    if (adminKey !== process.env.ADMIN_SECRET) {
-      return res.status(403).json({ message: "Unauthorized" });
+    const marketId = parseInt(req.params.id);
+    if (isNaN(marketId)) {
+      return res.status(400).json({ message: "Invalid market id" });
     }
 
-    const marketId = req.params.id;
     const { result } = req.body;
-
     if (!result) {
       return res.status(400).json({ message: "Result value required" });
     }
@@ -350,18 +442,14 @@ app.post("/markets/:id/resolve", async (req, res) => {
 
     if (market.status === "OPEN") {
       await client.query("ROLLBACK");
-      return res
-        .status(400)
-        .json({ message: "Market is still OPEN. Lock it after cutoff before resolving." });
+      return res.status(400).json({ message: "Market is still OPEN. Lock it after cutoff before resolving." });
     }
 
-    // Update market with result and mark resolved
     await client.query(
       "UPDATE markets SET result=$1, status='RESOLVED' WHERE id=$2",
       [result, marketId]
     );
 
-    // Lock predictions rows for consistent updates
     const predictions = await client.query(
       "SELECT id, user_id, selection, stake FROM predictions WHERE market_id=$1 FOR UPDATE",
       [marketId]
@@ -378,7 +466,6 @@ app.post("/markets/:id/resolve", async (req, res) => {
           "UPDATE users SET credits = credits + $1 WHERE id=$2",
           [payout, prediction.user_id]
         );
-
         await client.query(
           "UPDATE predictions SET status='WON' WHERE id=$1",
           [prediction.id]
@@ -399,18 +486,13 @@ app.post("/markets/:id/resolve", async (req, res) => {
 
     return res.json({
       message: "Market resolved successfully",
-      market_id: Number(marketId),
+      market_id: marketId,
       predictions_total: predictions.rowCount,
       won: wonCount,
       lost: lostCount,
     });
   } catch (err) {
-    try {
-      await client.query("ROLLBACK");
-    } catch (_) {
-      // ignore rollback errors
-    }
-
+    try { await client.query("ROLLBACK"); } catch (_) {}
     console.error(err);
     return res.status(500).json({ message: "Server error" });
   } finally {
@@ -418,36 +500,104 @@ app.post("/markets/:id/resolve", async (req, res) => {
   }
 });
 
-app.post("/markets/auto-lock", async (req, res) => {
-  try {
-    const adminKey = req.headers["x-admin-key"];
+// ─── Admin: Create Events & Markets ──────────────────────────────────────────
+app.post("/admin/events", async (req, res) => {
+  if (!adminAuth(req, res)) return;
 
-    if (adminKey !== process.env.ADMIN_SECRET) {
-      return res.status(403).json({ message: "Unauthorized" });
+  try {
+    const { sport, name, starts_at } = req.body;
+
+    if (!sport || !name || !starts_at) {
+      return res.status(400).json({ message: "sport, name and starts_at required" });
+    }
+
+    const validSports = ["F1", "FOOTBALL"];
+    if (!validSports.includes(sport.toUpperCase())) {
+      return res.status(400).json({ message: `sport must be one of: ${validSports.join(", ")}` });
     }
 
     const result = await pool.query(
-      `
-      UPDATE markets
-      SET status = 'LOCKED'
-      WHERE status = 'OPEN'
-        AND cutoff_at <= NOW()
-      RETURNING id, event_id, type, cutoff_at, status
-      `
+      "INSERT INTO events (sport, name, starts_at) VALUES ($1, $2, $3) RETURNING id, sport, name, starts_at, created_at",
+      [sport.toUpperCase(), name, starts_at]
     );
 
-    res.json({
-      message: "Auto-lock complete",
-      locked_count: result.rowCount,
-      locked_markets: result.rows,
-    });
+    res.status(201).json({ message: "Event created", event: result.rows[0] });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Server error" });
   }
 });
 
+app.post("/admin/markets", async (req, res) => {
+  if (!adminAuth(req, res)) return;
 
+  try {
+    const { event_id, type, multiplier, cutoff_at, options } = req.body;
+
+    if (!event_id || !type || multiplier === undefined || !cutoff_at) {
+      return res.status(400).json({ message: "event_id, type, multiplier and cutoff_at required" });
+    }
+
+    const multiplierNum = Number(multiplier);
+    if (!Number.isFinite(multiplierNum) || multiplierNum <= 1) {
+      return res.status(400).json({ message: "Multiplier must be greater than 1" });
+    }
+
+    const event = await pool.query("SELECT id FROM events WHERE id=$1", [event_id]);
+    if (event.rows.length === 0) {
+      return res.status(404).json({ message: "Event not found" });
+    }
+
+    const result = await pool.query(
+      "INSERT INTO markets (event_id, type, multiplier, cutoff_at, options) VALUES ($1, $2, $3, $4, $5) RETURNING id, event_id, type, multiplier, cutoff_at, status, options",
+      [event_id, type, multiplierNum, cutoff_at, options || null]
+    );
+
+    res.status(201).json({ message: "Market created", market: result.rows[0] });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// ─── Admin: User Credits ──────────────────────────────────────────────────────
+app.post("/admin/users/:id/credits", async (req, res) => {
+  if (!adminAuth(req, res)) return;
+
+  try {
+    const userId = parseInt(req.params.id);
+    if (isNaN(userId)) {
+      return res.status(400).json({ message: "Invalid user id" });
+    }
+
+    const { amount } = req.body;
+    if (amount === undefined || amount === null) {
+      return res.status(400).json({ message: "amount required" });
+    }
+
+    const amountNum = Number(amount);
+    if (!Number.isFinite(amountNum) || amountNum === 0) {
+      return res.status(400).json({ message: "amount must be a non-zero number" });
+    }
+
+    // GREATEST(0, ...) prevents credits going negative on deduction
+    const result = await pool.query(
+      "UPDATE users SET credits = GREATEST(0, credits + $1) WHERE id=$2 RETURNING id, email, credits",
+      [amountNum, userId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.json({ message: "Credits updated", user: result.rows[0] });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// ─── Server ───────────────────────────────────────────────────────────────────
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`API running on http://localhost:${PORT}`);
