@@ -1,0 +1,30 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Submit Prediction</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+
+  <ion-item>
+    <ion-input
+      label="Selection (e.g., VER)"
+      labelPlacement="floating"
+      [(ngModel)]="selection"
+    ></ion-input>
+  </ion-item>
+
+  <ion-item>
+    <ion-input
+      type="number"
+      label="Stake"
+      labelPlacement="floating"
+      [(ngModel)]="stake"
+    ></ion-input>
+  </ion-item>
+
+  <ion-button expand="block" (click)="submit()" [disabled]="loading">
+    {{ loading ? 'Submitting...' : 'Submit' }}
+  </ion-button>
+
+</ion-content>

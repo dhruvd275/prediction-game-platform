@@ -1,0 +1,24 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Events</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+
+  <ion-text *ngIf="loading">Loading events...</ion-text>
+
+  <ion-list *ngIf="!loading">
+    <ion-item *ngFor="let e of events" button detail (click)="openMarkets(e.id)">
+      <ion-label>
+        <h2>{{ e.name }}</h2>
+        <p>{{ e.sport }} • {{ e.starts_at }}</p>
+      </ion-label>
+    </ion-item>
+  </ion-list>
+
+  <ion-text *ngIf="!loading && events.length === 0">
+    No events available.
+  </ion-text>
+
+</ion-content>
