@@ -1,0 +1,27 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/home"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Leaderboard</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+
+  <ion-text *ngIf="loading">Loading leaderboard...</ion-text>
+
+  <ion-list *ngIf="!loading">
+    <ion-item *ngFor="let user of leaderboard; let i = index">
+      <ion-label>
+        <h2>#{{ i + 1 }} — {{ user.email }}</h2>
+        <p>Credits: {{ user.credits }}</p>
+      </ion-label>
+    </ion-item>
+  </ion-list>
+
+  <ion-text *ngIf="!loading && leaderboard.length === 0">
+    No users yet.
+  </ion-text>
+
+</ion-content>

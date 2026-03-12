@@ -45,4 +45,32 @@ export const routes: Routes = [
   loadComponent: () =>
     import('./pages/predict/predict.page').then((m) => m.PredictPage),
 },
+  {
+    path: 'register',
+    loadComponent: () => import('./pages/register/register.page').then( m => m.RegisterPage)
+  },
+  {
+    path: 'history',
+    loadComponent: () => import('./pages/history/history.page').then( m => m.HistoryPage)
+  },
+  {
+    path: 'leaderboard',
+    loadComponent: () => import('./pages/leaderboard/leaderboard.page').then( m => m.LeaderboardPage)
+  },
+  {
+    path: 'admin-login',
+    loadComponent: () => import('./pages/admin-login/admin-login.page').then( m => m.AdminLoginPage)
+  },
+  {
+    path: 'admin',
+    loadComponent: () => import('./pages/admin/admin.page').then( m => m.AdminPage)
+  },
+  {
+    path: 'admin-markets',
+    loadComponent: () => import('./pages/admin-markets/admin-markets.page').then( m => m.AdminMarketsPage)
+  },
+  {
+    path: 'admin-create-event',
+    loadComponent: () => import('./pages/admin-create-event/admin-create-event.page').then( m => m.AdminCreateEventPage)
+  },
 ];

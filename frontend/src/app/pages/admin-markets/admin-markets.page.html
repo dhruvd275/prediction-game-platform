@@ -1,0 +1,47 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/admin"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Manage Markets</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+
+  <ion-button expand="block" color="warning" (click)="autoLock()">
+    Auto-Lock Past Cutoff
+  </ion-button>
+
+  <ion-text *ngIf="loading">Loading markets...</ion-text>
+
+  <ion-list *ngIf="!loading">
+    <ion-item *ngFor="let m of markets">
+      <ion-label>
+        <h2>{{ m.event_name }} — {{ m.market_type }}</h2>
+        <p>Multiplier: {{ m.multiplier }} • Status: {{ m.status }}</p>
+        <p>Cutoff: {{ m.cutoff_at }}</p>
+        <p *ngIf="m.result">Result: {{ m.result }}</p>
+
+        <div *ngIf="m.status === 'LOCKED'">
+          <ion-item>
+            <ion-input
+              label="Result"
+              labelPlacement="floating"
+              [(ngModel)]="m.resolveResult"
+            ></ion-input>
+          </ion-item>
+          <ion-button size="small" (click)="resolve(m)">
+            Resolve
+          </ion-button>
+        </div>
+
+      </ion-label>
+    </ion-item>
+  </ion-list>
+
+  <ion-text *ngIf="!loading && markets.length === 0">
+    No markets found.
+  </ion-text>
+
+</ion-content>

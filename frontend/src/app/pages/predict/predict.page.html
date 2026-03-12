@@ -1,10 +1,23 @@
 <ion-header>
   <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/events"></ion-back-button>
+    </ion-buttons>
     <ion-title>Submit Prediction</ion-title>
+    <ion-note slot="end" class="ion-padding-end" *ngIf="credits !== null">
+      Credits: {{ credits }}
+    </ion-note>
   </ion-toolbar>
 </ion-header>
 
 <ion-content class="ion-padding">
+
+  <div *ngIf="market">
+    <h2>{{ market.event_name }}</h2>
+    <p>Market: {{ market.market_type }}</p>
+    <p>Multiplier: {{ market.multiplier }}x</p>
+    <p>Status: {{ market.status }}</p>
+  </div>
 
   <ion-item>
     <ion-input

@@ -18,6 +18,7 @@ export class MarketsPage implements OnInit {
 
   markets: any[] = [];
   loading = true;
+  credits: string | null = null;
 
   constructor(
     private route: ActivatedRoute,
@@ -28,6 +29,7 @@ export class MarketsPage implements OnInit {
   ngOnInit() {
     this.eventId = Number(this.route.snapshot.paramMap.get('id'));
     this.load();
+    this.loadCredits();
   }
 
   load() {
@@ -54,9 +56,17 @@ export class MarketsPage implements OnInit {
     });
   }
 
+  loadCredits() {
+    this.api.me().subscribe({
+      next: (res: any) => {
+        this.credits = res.user.credits;
+      },
+      error: () => {}
+    });
+  }
+
   openPredict(m: any) {
     if (m.status !== 'OPEN') return;
     this.router.navigateByUrl(`/markets/${m.id}/predict`);
   }
-
 }

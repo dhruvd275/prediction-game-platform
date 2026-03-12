@@ -1,0 +1,28 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/home"></ion-back-button>
+    </ion-buttons>
+    <ion-title>My Predictions</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+
+  <ion-text *ngIf="loading">Loading predictions...</ion-text>
+
+  <ion-list *ngIf="!loading">
+    <ion-item *ngFor="let p of predictions">
+      <ion-label>
+        <h2>{{ p.event_name }} — {{ p.market_type }}</h2>
+        <p>Selection: {{ p.selection }} • Stake: {{ p.stake }}</p>
+        <p>Status: {{ p.prediction_status }} • Multiplier: {{ p.multiplier }}</p>
+      </ion-label>
+    </ion-item>
+  </ion-list>
+
+  <ion-text *ngIf="!loading && predictions.length === 0">
+    No predictions yet.
+  </ion-text>
+
+</ion-content>

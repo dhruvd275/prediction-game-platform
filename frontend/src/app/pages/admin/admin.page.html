@@ -1,0 +1,56 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Admin Dashboard</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+
+  <ion-text *ngIf="loading">Loading stats...</ion-text>
+
+  <div *ngIf="stats">
+
+    <h2>Platform Stats</h2>
+
+    <ion-list>
+      <ion-item>
+        <ion-label>Total Users</ion-label>
+        <ion-note slot="end">{{ stats.total_users }}</ion-note>
+      </ion-item>
+      <ion-item>
+        <ion-label>Total Events</ion-label>
+        <ion-note slot="end">{{ stats.total_events }}</ion-note>
+      </ion-item>
+      <ion-item>
+        <ion-label>Total Predictions</ion-label>
+        <ion-note slot="end">{{ stats.total_predictions }}</ion-note>
+      </ion-item>
+      <ion-item>
+        <ion-label>Markets — Open</ion-label>
+        <ion-note slot="end">{{ stats.markets_open }}</ion-note>
+      </ion-item>
+      <ion-item>
+        <ion-label>Markets — Locked</ion-label>
+        <ion-note slot="end">{{ stats.markets_locked }}</ion-note>
+      </ion-item>
+      <ion-item>
+        <ion-label>Markets — Resolved</ion-label>
+        <ion-note slot="end">{{ stats.markets_resolved }}</ion-note>
+      </ion-item>
+    </ion-list>
+
+    <ion-button expand="block" (click)="goMarkets()">
+      Manage Markets
+    </ion-button>
+
+    <ion-button expand="block" (click)="goCreateEvent()">
+      Create Event
+    </ion-button>
+
+    <ion-button expand="block" color="danger" (click)="logout()">
+      Admin Logout
+    </ion-button>
+
+  </div>
+
+</ion-content>

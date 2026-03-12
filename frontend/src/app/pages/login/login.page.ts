@@ -19,23 +19,18 @@ export class LoginPage {
   constructor(private api: Api, private router: Router) {}
 
   login() {
-
     this.api.login(this.email, this.password).subscribe({
-
       next: (res: any) => {
-
         this.api.setToken(res.token);
-
         this.router.navigateByUrl('/home');
-
       },
-
       error: (err) => {
         alert(err.error.message || 'Login failed');
       }
-
     });
-
   }
 
+  goRegister() {
+    this.router.navigateByUrl('/register');
+  }
 }

@@ -1,6 +1,12 @@
 <ion-header>
   <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/events"></ion-back-button>
+    </ion-buttons>
     <ion-title>Markets</ion-title>
+    <ion-note slot="end" class="ion-padding-end" *ngIf="credits !== null">
+      Credits: {{ credits }}
+    </ion-note>
   </ion-toolbar>
 </ion-header>
 

@@ -12,6 +12,8 @@ export class Api {
 
   constructor(private http: HttpClient) {}
 
+  // --- User token ---
+
   setToken(token: string) {
     localStorage.setItem('token', token);
   }
@@ -31,12 +33,33 @@ export class Api {
       : new HttpHeaders();
   }
 
-  // Health check
+  // --- Admin key ---
+
+  setAdminKey(key: string) {
+    localStorage.setItem('admin_key', key);
+  }
+
+  getAdminKey(): string | null {
+    return localStorage.getItem('admin_key');
+  }
+
+  clearAdminKey() {
+    localStorage.removeItem('admin_key');
+  }
+
+  private adminHeaders(): HttpHeaders {
+    const key = this.getAdminKey();
+    return key
+      ? new HttpHeaders({ 'x-admin-key': key })
+      : new HttpHeaders();
+  }
+
+  // --- Auth ---
+
   health(): Observable<any> {
     return this.http.get(`${this.baseUrl}/health`);
   }
 
-  // Register user
   register(email: string, password: string): Observable<any> {
     return this.http.post(`${this.baseUrl}/auth/register`, {
       email,
@@ -44,7 +67,6 @@ export class Api {
     });
   }
 
-  // Login user
   login(email: string, password: string): Observable<any> {
     return this.http.post(`${this.baseUrl}/auth/login`, {
       email,
@@ -52,15 +74,42 @@ export class Api {
     });
   }
 
-  // Get events
-  getEvents(): Observable<any> {
-    return this.http.get(`${this.baseUrl}/events`);
-  }
+  // --- User ---
 
   me(): Observable<any> {
     return this.http.get(`${this.baseUrl}/me`, {
       headers: this.authHeaders(),
     });
+  }
+
+  // --- Events ---
+
+  getEvents(): Observable<any> {
+    return this.http.get(`${this.baseUrl}/events`);
+  }
+
+  getEvent(eventId: number): Observable<any> {
+    return this.http.get(`${this.baseUrl}/events/${eventId}`);
+  }
+
+  // --- Markets ---
+
+  getMarkets(eventId: number): Observable<any> {
+    return this.http.get(`${this.baseUrl}/events/${eventId}/markets`);
+  }
+
+  getMarket(marketId: number): Observable<any> {
+    return this.http.get(`${this.baseUrl}/markets/${marketId}`);
+  }
+
+  // --- Predictions ---
+
+  submitPrediction(marketId: number, selection: string, stake: number): Observable<any> {
+    return this.http.post(
+      `${this.baseUrl}/predictions`,
+      { market_id: marketId, selection, stake },
+      { headers: this.authHeaders() }
+    );
   }
 
   myPredictions(): Observable<any> {
@@ -69,25 +118,47 @@ export class Api {
     });
   }
 
-  // Get markets for a specific event
-getMarkets(eventId: number): Observable<any> {
-  return this.http.get(`${this.baseUrl}/events/${eventId}/markets`);
-}
+  // --- Leaderboard ---
 
-getEvent(eventId: number) {
-  return this.http.get(`${this.baseUrl}/events/${eventId}`);
-}
+  getLeaderboard(): Observable<any> {
+    return this.http.get(`${this.baseUrl}/leaderboard`);
+  }
 
-getMarket(marketId: number) {
-  return this.http.get(`${this.baseUrl}/markets/${marketId}`);
-}
+  // --- Admin ---
 
-submitPrediction(marketId: number, selection: string, stake: number) {
-  return this.http.post(
-    `${this.baseUrl}/predictions`,
-    { market_id: marketId, selection, stake },
-    { headers: this.authHeaders() }
-  );
-}
+  adminAutoLock(): Observable<any> {
+    return this.http.post(`${this.baseUrl}/markets/auto-lock`, {}, {
+      headers: this.adminHeaders(),
+    });
+  }
 
+  adminResolveMarket(marketId: number, result: string): Observable<any> {
+    return this.http.post(`${this.baseUrl}/markets/${marketId}/resolve`, { result }, {
+      headers: this.adminHeaders(),
+    });
+  }
+
+  adminGetStats(): Observable<any> {
+    return this.http.get(`${this.baseUrl}/admin/stats`, {
+      headers: this.adminHeaders(),
+    });
+  }
+
+  adminGetMarkets(): Observable<any> {
+    return this.http.get(`${this.baseUrl}/admin/markets`, {
+      headers: this.adminHeaders(),
+    });
+  }
+
+  adminCreateEvent(sport: string, name: string, starts_at: string): Observable<any> {
+    return this.http.post(`${this.baseUrl}/admin/events`, { sport, name, starts_at }, {
+      headers: this.adminHeaders(),
+    });
+  }
+
+  adminCreateMarkets(eventId: number, markets: any[]): Observable<any> {
+    return this.http.post(`${this.baseUrl}/admin/events/${eventId}/markets`, { markets }, {
+      headers: this.adminHeaders(),
+    });
+  }
 }

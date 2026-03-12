@@ -22,17 +22,38 @@ export class HomePage implements OnInit {
   }
 
   loadUser() {
+    const token = this.api.getToken();
+
+    if (!token) {
+      this.router.navigateByUrl('/login');
+      return;
+    }
+
     this.api.me().subscribe({
       next: (res) => {
         this.user = res.user;
       },
       error: () => {
-        console.log('User not authenticated');
+        this.api.clearToken();
+        this.router.navigateByUrl('/login');
       }
     });
   }
 
   goEvents() {
     this.router.navigateByUrl('/events');
+  }
+
+  goHistory() {
+    this.router.navigateByUrl('/history');
+  }
+
+  goLeaderboard() {
+    this.router.navigateByUrl('/leaderboard');
+  }
+
+  logout() {
+    this.api.clearToken();
+    this.router.navigateByUrl('/login');
   }
 }

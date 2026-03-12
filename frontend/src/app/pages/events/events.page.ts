@@ -15,11 +15,13 @@ export class EventsPage implements OnInit {
 
   events: any[] = [];
   loading = true;
+  credits: string | null = null;
 
   constructor(private api: Api, private router: Router) {}
 
   ngOnInit() {
     this.loadEvents();
+    this.loadCredits();
   }
 
   loadEvents() {
@@ -36,10 +38,16 @@ export class EventsPage implements OnInit {
     });
   }
 
-  openMarkets(eventId: number) {
-  console.log('clicked event:', eventId);
-  this.router.navigateByUrl(`/events/${eventId}/markets`);
-}
+  loadCredits() {
+    this.api.me().subscribe({
+      next: (res: any) => {
+        this.credits = res.user.credits;
+      },
+      error: () => {}
+    });
+  }
 
-  
+  openMarkets(eventId: number) {
+    this.router.navigateByUrl(`/events/${eventId}/markets`);
+  }
 }

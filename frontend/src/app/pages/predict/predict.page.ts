@@ -15,11 +15,13 @@ import { Api } from '../../services/api';
 export class PredictPage implements OnInit {
 
   marketId!: number;
+  market: any = null;
 
   selection = '';
   stake: number | null = null;
 
   loading = false;
+  credits: string | null = null;
 
   constructor(
     private route: ActivatedRoute,
@@ -29,6 +31,28 @@ export class PredictPage implements OnInit {
 
   ngOnInit() {
     this.marketId = Number(this.route.snapshot.paramMap.get('id'));
+    this.loadMarket();
+    this.loadCredits();
+  }
+
+  loadMarket() {
+    this.api.getMarket(this.marketId).subscribe({
+      next: (res: any) => {
+        this.market = res.market;
+      },
+      error: () => {
+        alert('Failed to load market info');
+      }
+    });
+  }
+
+  loadCredits() {
+    this.api.me().subscribe({
+      next: (res: any) => {
+        this.credits = res.user.credits;
+      },
+      error: () => {}
+    });
   }
 
   submit() {

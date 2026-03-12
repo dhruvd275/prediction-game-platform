@@ -1,0 +1,22 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Admin Login</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+
+  <ion-item>
+    <ion-input
+      type="password"
+      label="Admin Key"
+      labelPlacement="floating"
+      [(ngModel)]="adminKey">
+    </ion-input>
+  </ion-item>
+
+  <ion-button expand="block" (click)="login()">
+    Enter
+  </ion-button>
+
+</ion-content>

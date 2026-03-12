@@ -1,0 +1,80 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/admin"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Create Event</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+
+  <h2>Event Details</h2>
+
+  <ion-item>
+    <ion-input
+      label="Sport (e.g. F1)"
+      labelPlacement="floating"
+      [(ngModel)]="sport">
+    </ion-input>
+  </ion-item>
+
+  <ion-item>
+    <ion-input
+      label="Event Name"
+      labelPlacement="floating"
+      [(ngModel)]="name">
+    </ion-input>
+  </ion-item>
+
+  <ion-item>
+    <ion-input
+      type="datetime-local"
+      label="Start Time"
+      labelPlacement="floating"
+      [(ngModel)]="startsAt">
+    </ion-input>
+  </ion-item>
+
+  <h2>Markets</h2>
+
+  <div *ngFor="let m of markets; let i = index">
+    <ion-item-group>
+      <ion-item>
+        <ion-input
+          label="Type (e.g. race_p1)"
+          labelPlacement="floating"
+          [(ngModel)]="m.type">
+        </ion-input>
+      </ion-item>
+      <ion-item>
+        <ion-input
+          type="number"
+          label="Multiplier (e.g. 3.00)"
+          labelPlacement="floating"
+          [(ngModel)]="m.multiplier">
+        </ion-input>
+      </ion-item>
+      <ion-item>
+        <ion-input
+          type="datetime-local"
+          label="Cutoff Time"
+          labelPlacement="floating"
+          [(ngModel)]="m.cutoffAt">
+        </ion-input>
+      </ion-item>
+      <ion-button size="small" color="danger" (click)="removeMarket(i)">
+        Remove Market
+      </ion-button>
+    </ion-item-group>
+  </div>
+
+  <ion-button expand="block" fill="outline" (click)="addMarket()">
+    + Add Market
+  </ion-button>
+
+  <ion-button expand="block" (click)="submit()" [disabled]="loading">
+    {{ loading ? 'Creating...' : 'Create Event' }}
+  </ion-button>
+
+</ion-content>
