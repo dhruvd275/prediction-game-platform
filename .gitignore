@@ -1,0 +1,24 @@
+# Dependencies
+node_modules/
+
+# Environment files
+.env
+
+# Mac files
+.DS_Store
+
+# IDE
+.vscode/
+
+# Angular build output
+dist/
+www/
+
+# Ionic
+.angular/
+
+# Logs
+*.log
+
+# Claude
+.claude/
