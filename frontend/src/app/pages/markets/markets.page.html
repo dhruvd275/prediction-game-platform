@@ -17,7 +17,15 @@
     <p>{{ event.sport }} • {{ event.starts_at | date:'MMM d, y – h:mm a' }}</p>
   </div>
 
-  <ion-text *ngIf="loading">Loading markets...</ion-text>
+  <ion-list *ngIf="loading">
+    <ion-item *ngFor="let i of [1,2,3,4]">
+      <ion-label>
+        <h2><ion-skeleton-text [animated]="true" style="width: 50%"></ion-skeleton-text></h2>
+        <p><ion-skeleton-text [animated]="true" style="width: 70%"></ion-skeleton-text></p>
+        <p><ion-skeleton-text [animated]="true" style="width: 45%"></ion-skeleton-text></p>
+      </ion-label>
+    </ion-item>
+  </ion-list>
 
   <ion-list *ngIf="!loading">
     <ion-item *ngFor="let m of markets" button detail [disabled]="m.status !== 'OPEN'" (click)="openPredict(m)">

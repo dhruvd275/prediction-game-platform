@@ -14,11 +14,13 @@ import { Api } from '../services/api';
 export class HomePage implements ViewWillEnter {
 
   user: any = null;
+  stats: any = null;
 
   constructor(private api: Api, private router: Router) {}
 
   ionViewWillEnter() {
     this.loadUser();
+    this.loadStats();
   }
 
   loadUser() {
@@ -40,12 +42,25 @@ export class HomePage implements ViewWillEnter {
     });
   }
 
+  loadStats() {
+    this.api.myStats().subscribe({
+      next: (res: any) => {
+        this.stats = res.stats;
+      },
+      error: () => {}
+    });
+  }
+
   goEvents() {
     this.router.navigateByUrl('/events');
   }
 
   goHistory() {
     this.router.navigateByUrl('/history');
+  }
+
+  goCreditLog() {
+    this.router.navigateByUrl('/credit-log');
   }
 
   goLeaderboard() {

@@ -87,4 +87,10 @@ export const routes: Routes = [
       import('./pages/admin-create-event/admin-create-event.page').then((m) => m.AdminCreateEventPage),
     canActivate: [adminGuard],
   },
+  {
+    path: 'credit-log',
+    loadComponent: () =>
+      import('./pages/credit-log/credit-log.page').then((m) => m.CreditLogPage),
+    canActivate: [authGuard],
+  },
 ];

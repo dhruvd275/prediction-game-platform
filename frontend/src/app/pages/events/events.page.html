@@ -12,7 +12,14 @@
 
 <ion-content class="ion-padding">
 
-  <ion-text *ngIf="loading">Loading events...</ion-text>
+  <ion-list *ngIf="loading">
+    <ion-item *ngFor="let i of [1,2,3]">
+      <ion-label>
+        <h2><ion-skeleton-text [animated]="true" style="width: 60%"></ion-skeleton-text></h2>
+        <p><ion-skeleton-text [animated]="true" style="width: 40%"></ion-skeleton-text></p>
+      </ion-label>
+    </ion-item>
+  </ion-list>
 
   <ion-list *ngIf="!loading">
     <ion-item *ngFor="let e of events" button detail (click)="openMarkets(e.id)">

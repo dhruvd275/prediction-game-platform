@@ -6,25 +6,33 @@
 
 <ion-content class="ion-padding">
 
+  <ion-text color="danger" *ngIf="errorMessage">
+    <p>{{ errorMessage }}</p>
+  </ion-text>
+
   <ion-item>
     <ion-input
       label="Email"
       labelPlacement="floating"
+      type="email"
       [(ngModel)]="email">
     </ion-input>
   </ion-item>
 
   <ion-item>
     <ion-input
-      type="password"
+      [type]="showPassword ? 'text' : 'password'"
       label="Password"
       labelPlacement="floating"
       [(ngModel)]="password">
     </ion-input>
+    <ion-button fill="clear" slot="end" (click)="showPassword = !showPassword">
+      <ion-icon [name]="showPassword ? 'eye-off' : 'eye'"></ion-icon>
+    </ion-button>
   </ion-item>
 
-  <ion-button expand="block" (click)="login()">
-    Login
+  <ion-button expand="block" (click)="login()" [disabled]="loading">
+    {{ loading ? 'Logging in...' : 'Login' }}
   </ion-button>
 
   <ion-button expand="block" fill="clear" (click)="goRegister()">

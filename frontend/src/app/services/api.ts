@@ -82,6 +82,18 @@ export class Api {
     });
   }
 
+  myStats(): Observable<any> {
+  return this.http.get(`${this.baseUrl}/me/stats`, {
+    headers: this.authHeaders(),
+  });
+}
+
+  myCreditLog(): Observable<any> {
+  return this.http.get(`${this.baseUrl}/me/credit-log`, {
+    headers: this.authHeaders(),
+  });
+}
+
   // --- Events ---
 
   getEvents(): Observable<any> {

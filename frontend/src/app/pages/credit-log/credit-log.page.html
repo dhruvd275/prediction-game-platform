@@ -1,0 +1,28 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/home"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Credit Log</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+
+  <ion-text *ngIf="loading">Loading credit log...</ion-text>
+
+  <ion-list *ngIf="!loading">
+    <ion-item *ngFor="let entry of log">
+      <ion-label>
+        <h2>{{ entry.type }} — {{ entry.amount > 0 ? '+' : '' }}{{ entry.amount }}</h2>
+        <p>{{ entry.description }}</p>
+        <p>{{ entry.created_at | date:'MMM d, y – h:mm a' }}</p>
+      </ion-label>
+    </ion-item>
+  </ion-list>
+
+  <ion-text *ngIf="!loading && log.length === 0">
+    No transactions yet.
+  </ion-text>
+
+</ion-content>

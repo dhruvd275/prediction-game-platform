@@ -120,6 +120,63 @@ app.get("/me", authMiddleware, async (req, res) => {
   }
 });
 
+// User stats — win/loss/accuracy
+app.get("/me/stats", authMiddleware, async (req, res) => {
+  try {
+    const userId = req.user.userId;
+
+    const result = await pool.query(
+      `
+      SELECT
+        COUNT(*) AS total,
+        COUNT(*) FILTER (WHERE status = 'WON') AS won,
+        COUNT(*) FILTER (WHERE status = 'LOST') AS lost,
+        COUNT(*) FILTER (WHERE status = 'PENDING') AS pending,
+        COALESCE(SUM(stake), 0) AS total_staked
+      FROM predictions
+      WHERE user_id = $1
+      `,
+      [userId]
+    );
+
+    const stats = result.rows[0];
+    const resolved = Number(stats.won) + Number(stats.lost);
+    const accuracy = resolved > 0
+      ? ((Number(stats.won) / resolved) * 100).toFixed(1)
+      : '0.0';
+
+    res.json({
+      stats: {
+        total: Number(stats.total),
+        won: Number(stats.won),
+        lost: Number(stats.lost),
+        pending: Number(stats.pending),
+        total_staked: stats.total_staked,
+        accuracy: accuracy,
+      }
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Failed to fetch stats" });
+  }
+});
+
+app.get("/me/credit-log", authMiddleware, async (req, res) => {
+  try {
+    const userId = req.user.userId;
+
+    const result = await pool.query(
+      "SELECT id, amount, type, description, created_at FROM credit_log WHERE user_id=$1 ORDER BY created_at DESC LIMIT 50",
+      [userId]
+    );
+
+    res.json({ log: result.rows });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Failed to fetch credit log" });
+  }
+});
+
 app.get("/leaderboard", async (req, res) => {
   try {
     const result = await pool.query(
@@ -391,6 +448,11 @@ app.post("/predictions", authMiddleware, async (req, res) => {
       [userId, market_id, selection, stakeNum]
     );
 
+    await client.query(
+      "INSERT INTO credit_log (user_id, amount, type, description) VALUES ($1, $2, $3, $4)",
+      [userId, -stakeNum, 'STAKE', `Staked on market ${market_id}`]
+    );
+
     await client.query("COMMIT");
 
     return res.json({
@@ -413,6 +475,8 @@ app.post("/predictions", authMiddleware, async (req, res) => {
     client.release();
   }
 });
+
+
 
 app.get("/predictions/me", authMiddleware, async (req, res) => {
   try {
@@ -532,6 +596,11 @@ app.post("/markets/:id/resolve", async (req, res) => {
     await client.query(
       "UPDATE markets SET result=$1, status='RESOLVED' WHERE id=$2",
       [result, marketId]
+    );
+
+    await client.query(
+      "INSERT INTO credit_log (user_id, amount, type, description) VALUES ($1, $2, $3, $4)",
+      [prediction.user_id, payout, 'PAYOUT', `Won on market ${marketId}`]
     );
 
     const predictions = await client.query(

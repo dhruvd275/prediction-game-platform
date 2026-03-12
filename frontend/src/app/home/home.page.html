@@ -13,12 +13,46 @@
 
     <p>Credits: {{ user.credits }}</p>
 
+    <div *ngIf="stats">
+      <h3>Your Stats</h3>
+      <ion-list>
+        <ion-item>
+          <ion-label>Total Predictions</ion-label>
+          <ion-note slot="end">{{ stats.total }}</ion-note>
+        </ion-item>
+        <ion-item>
+          <ion-label>Won</ion-label>
+          <ion-note slot="end">{{ stats.won }}</ion-note>
+        </ion-item>
+        <ion-item>
+          <ion-label>Lost</ion-label>
+          <ion-note slot="end">{{ stats.lost }}</ion-note>
+        </ion-item>
+        <ion-item>
+          <ion-label>Pending</ion-label>
+          <ion-note slot="end">{{ stats.pending }}</ion-note>
+        </ion-item>
+        <ion-item>
+          <ion-label>Accuracy</ion-label>
+          <ion-note slot="end">{{ stats.accuracy }}%</ion-note>
+        </ion-item>
+        <ion-item>
+          <ion-label>Total Staked</ion-label>
+          <ion-note slot="end">{{ stats.total_staked }}</ion-note>
+        </ion-item>
+      </ion-list>
+    </div>
+
     <ion-button expand="block" (click)="goEvents()">
       View Events
     </ion-button>
 
     <ion-button expand="block" (click)="goHistory()">
       My Predictions
+    </ion-button>
+
+    <ion-button expand="block" (click)="goCreditLog()">
+      Credit Log
     </ion-button>
 
     <ion-button expand="block" (click)="goLeaderboard()">
