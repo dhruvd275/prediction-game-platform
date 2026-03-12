@@ -19,7 +19,19 @@
     <p>Status: {{ market.status }}</p>
   </div>
 
-  <ion-item>
+  <ion-item *ngIf="options.length > 0">
+    <ion-select
+      label="Select Driver"
+      labelPlacement="floating"
+      interface="popover"
+      [(ngModel)]="selection">
+      <ion-select-option *ngFor="let o of options" [value]="o.value">
+        {{ o.label }} ({{ o.value }})
+      </ion-select-option>
+    </ion-select>
+  </ion-item>
+
+  <ion-item *ngIf="options.length === 0">
     <ion-input
       label="Selection (e.g., VER)"
       labelPlacement="floating"

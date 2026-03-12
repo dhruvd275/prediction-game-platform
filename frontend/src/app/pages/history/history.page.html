@@ -17,6 +17,7 @@
         <h2>{{ p.event_name }} — {{ p.market_type }}</h2>
         <p>Selection: {{ p.selection }} • Stake: {{ p.stake }}</p>
         <p>Status: {{ p.prediction_status }} • Multiplier: {{ p.multiplier }}</p>
+        <p>Submitted: {{ p.submitted_at | date:'MMM d, y – h:mm a' }}</p>
       </ion-label>
     </ion-item>
   </ion-list>

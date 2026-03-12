@@ -102,6 +102,10 @@ export class Api {
     return this.http.get(`${this.baseUrl}/markets/${marketId}`);
   }
 
+  getMarketOptions(marketId: number): Observable<any> {
+    return this.http.get(`${this.baseUrl}/markets/${marketId}/options`);
+  }
+
   // --- Predictions ---
 
   submitPrediction(marketId: number, selection: string, stake: number): Observable<any> {

@@ -199,7 +199,7 @@ app.get("/admin/markets", async (req, res) => {
   }
 });
 
-// NEW: Admin create event
+// Admin create event
 app.post("/admin/events", async (req, res) => {
   try {
     const adminKey = req.headers["x-admin-key"];
@@ -229,7 +229,7 @@ app.post("/admin/events", async (req, res) => {
   }
 });
 
-// NEW: Admin create markets for event
+// Admin create markets for event
 app.post("/admin/events/:id/markets", async (req, res) => {
   try {
     const adminKey = req.headers["x-admin-key"];
@@ -267,6 +267,23 @@ app.post("/admin/events/:id/markets", async (req, res) => {
   } catch (err) {
     console.error(err);
     return res.status(500).json({ message: "Server error" });
+  }
+});
+
+// NEW: Get options for a market
+app.get("/markets/:id/options", async (req, res) => {
+  try {
+    const marketId = req.params.id;
+
+    const result = await pool.query(
+      "SELECT id, value, label FROM market_options WHERE market_id=$1 ORDER BY label ASC",
+      [marketId]
+    );
+
+    res.json({ options: result.rows });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Failed to fetch market options" });
   }
 });
 

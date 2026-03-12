@@ -18,7 +18,7 @@
     <ion-item *ngFor="let e of events" button detail (click)="openMarkets(e.id)">
       <ion-label>
         <h2>{{ e.name }}</h2>
-        <p>{{ e.sport }} • {{ e.starts_at }}</p>
+        <p>{{ e.sport }} • {{ e.starts_at | date:'MMM d, y – h:mm a' }}</p>
       </ion-label>
     </ion-item>
   </ion-list>

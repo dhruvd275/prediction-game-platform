@@ -1,5 +1,5 @@
-import { Component, OnInit } from '@angular/core';
-import { IonicModule } from '@ionic/angular';
+import { Component } from '@angular/core';
+import { IonicModule, ViewWillEnter } from '@ionic/angular';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { Api } from '../services/api';
@@ -11,13 +11,13 @@ import { Api } from '../services/api';
   standalone: true,
   imports: [IonicModule, CommonModule, RouterModule],
 })
-export class HomePage implements OnInit {
+export class HomePage implements ViewWillEnter {
 
   user: any = null;
 
   constructor(private api: Api, private router: Router) {}
 
-  ngOnInit() {
+  ionViewWillEnter() {
     this.loadUser();
   }
 

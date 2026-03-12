@@ -14,7 +14,7 @@
 
   <div *ngIf="event">
     <h2>{{ event.name }}</h2>
-    <p>{{ event.sport }} • {{ event.starts_at }}</p>
+    <p>{{ event.sport }} • {{ event.starts_at | date:'MMM d, y – h:mm a' }}</p>
   </div>
 
   <ion-text *ngIf="loading">Loading markets...</ion-text>
@@ -24,7 +24,7 @@
       <ion-label>
         <h2>{{ m.type }}</h2>
         <p>Multiplier: {{ m.multiplier }} • Status: {{ m.status }}</p>
-        <p>Cutoff: {{ m.cutoff_at }}</p>
+        <p>Cutoff: {{ m.cutoff_at | date:'MMM d, y – h:mm a' }}</p>
       </ion-label>
     </ion-item>
   </ion-list>

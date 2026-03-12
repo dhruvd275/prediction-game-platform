@@ -16,6 +16,7 @@ export class PredictPage implements OnInit {
 
   marketId!: number;
   market: any = null;
+  options: any[] = [];
 
   selection = '';
   stake: number | null = null;
@@ -32,6 +33,7 @@ export class PredictPage implements OnInit {
   ngOnInit() {
     this.marketId = Number(this.route.snapshot.paramMap.get('id'));
     this.loadMarket();
+    this.loadOptions();
     this.loadCredits();
   }
 
@@ -46,6 +48,17 @@ export class PredictPage implements OnInit {
     });
   }
 
+  loadOptions() {
+    this.api.getMarketOptions(this.marketId).subscribe({
+      next: (res: any) => {
+        this.options = res.options || [];
+      },
+      error: () => {
+        this.options = [];
+      }
+    });
+  }
+
   loadCredits() {
     this.api.me().subscribe({
       next: (res: any) => {
@@ -56,8 +69,8 @@ export class PredictPage implements OnInit {
   }
 
   submit() {
-    if (!this.selection.trim()) {
-      alert('Enter a selection (example: VER)');
+    if (!this.selection) {
+      alert('Select a driver');
       return;
     }
     if (!this.stake || this.stake <= 0) {
@@ -67,7 +80,7 @@ export class PredictPage implements OnInit {
 
     this.loading = true;
 
-    this.api.submitPrediction(this.marketId, this.selection.trim().toUpperCase(), this.stake).subscribe({
+    this.api.submitPrediction(this.marketId, this.selection, this.stake).subscribe({
       next: () => {
         this.loading = false;
         alert('Prediction submitted!');

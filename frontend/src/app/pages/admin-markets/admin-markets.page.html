@@ -20,7 +20,7 @@
       <ion-label>
         <h2>{{ m.event_name }} — {{ m.market_type }}</h2>
         <p>Multiplier: {{ m.multiplier }} • Status: {{ m.status }}</p>
-        <p>Cutoff: {{ m.cutoff_at }}</p>
+        <p>Cutoff: {{ m.cutoff_at | date:'MMM d, y – h:mm a' }}</p>
         <p *ngIf="m.result">Result: {{ m.result }}</p>
 
         <div *ngIf="m.status === 'LOCKED'">
