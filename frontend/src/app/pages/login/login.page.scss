@@ -1,0 +1,105 @@
+.login-content {
+  --background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%);
+}
+
+.login-wrapper {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.brand {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.logo-placeholder {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 16px;
+  border-radius: 16px;
+  background: rgba(59, 130, 246, 0.15);
+  border: 2px dashed #3B82F6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #3B82F6;
+  font-family: 'Anton', sans-serif;
+  font-size: 14px;
+  letter-spacing: 1px;
+}
+
+.brand-name {
+  font-family: 'Anton', sans-serif !important;
+  font-size: 48px;
+  letter-spacing: 3px;
+  color: #F1F5F9;
+  margin: 0;
+  text-transform: uppercase;
+}
+
+.tagline {
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  color: #94A3B8;
+  margin: 4px 0 0;
+  letter-spacing: 0.5px;
+}
+
+.login-card {
+  width: 100%;
+  max-width: 380px;
+  background: #1E293B;
+  border-radius: 20px;
+  padding: 32px 24px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+  border: 1px solid #334155;
+}
+
+.card-title {
+  font-family: 'Anton', sans-serif !important;
+  font-size: 24px;
+  text-align: center;
+  margin: 0 0 24px;
+  letter-spacing: 1px;
+  color: #F1F5F9;
+}
+
+.error-msg {
+  text-align: center;
+  font-size: 14px;
+  margin: 0 0 16px;
+}
+
+.input-item {
+  --background: #0F172A;
+  --border-radius: 12px;
+  margin-bottom: 16px;
+  border-radius: 12px;
+  border: 1px solid #334155;
+}
+
+.login-btn {
+  --background: #3B82F6;
+  --background-hover: #2563EB;
+  --border-radius: 12px;
+  --box-shadow: 0 4px 14px rgba(59, 130, 246, 0.4);
+  font-family: 'Anton', sans-serif;
+  font-size: 16px;
+  letter-spacing: 1.5px;
+  height: 50px;
+  margin-top: 8px;
+}
+
+.register-link {
+  --color: #94A3B8;
+  font-size: 13px;
+  margin-top: 8px;
+
+  strong {
+    color: #3B82F6;
+  }
+}

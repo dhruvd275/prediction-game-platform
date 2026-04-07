@@ -1,42 +1,54 @@
-<ion-header>
-  <ion-toolbar>
-    <ion-title>Login</ion-title>
-  </ion-toolbar>
-</ion-header>
+<ion-content [fullscreen]="true" class="login-content">
 
-<ion-content class="ion-padding">
+  <div class="login-wrapper">
 
-  <ion-text color="danger" *ngIf="errorMessage">
-    <p>{{ errorMessage }}</p>
-  </ion-text>
+    <div class="brand">
+      <div class="logo-placeholder">LOGO</div>
+      <h1 class="brand-name">BOLDTAKE</h1>
+      <p class="tagline">Beat your friends</p>
+    </div>
 
-  <ion-item>
-    <ion-input
-      label="Email"
-      labelPlacement="floating"
-      type="email"
-      [(ngModel)]="email">
-    </ion-input>
-  </ion-item>
+    <div class="login-card">
 
-  <ion-item>
-    <ion-input
-      [type]="showPassword ? 'text' : 'password'"
-      label="Password"
-      labelPlacement="floating"
-      [(ngModel)]="password">
-    </ion-input>
-    <ion-button fill="clear" slot="end" (click)="showPassword = !showPassword">
-      <ion-icon [name]="showPassword ? 'eye-off' : 'eye'"></ion-icon>
-    </ion-button>
-  </ion-item>
+      <h2 class="card-title">Login</h2>
 
-  <ion-button expand="block" (click)="login()" [disabled]="loading">
-    {{ loading ? 'Logging in...' : 'Login' }}
-  </ion-button>
+      <ion-text color="danger" *ngIf="errorMessage">
+        <p class="error-msg">{{ errorMessage }}</p>
+      </ion-text>
 
-  <ion-button expand="block" fill="clear" (click)="goRegister()">
-    Don't have an account? Register
-  </ion-button>
+      <ion-item lines="none" class="input-item">
+        <ion-input
+          label="Email"
+          labelPlacement="floating"
+          type="email"
+          [(ngModel)]="email"
+          (keyup.enter)="login()">
+        </ion-input>
+      </ion-item>
+
+      <ion-item lines="none" class="input-item">
+        <ion-input
+          [type]="showPassword ? 'text' : 'password'"
+          label="Password"
+          labelPlacement="floating"
+          [(ngModel)]="password"
+          (keyup.enter)="login()">
+        </ion-input>
+        <ion-button fill="clear" slot="end" (click)="showPassword = !showPassword">
+          <ion-icon [name]="showPassword ? 'eye-off' : 'eye'"></ion-icon>
+        </ion-button>
+      </ion-item>
+
+      <ion-button expand="block" class="login-btn" (click)="login()" [disabled]="loading">
+        {{ loading ? 'Logging in...' : 'Login' }}
+      </ion-button>
+
+      <ion-button expand="block" fill="clear" class="register-link" (click)="goRegister()">
+        Don't have an account? <strong>&nbsp;Register</strong>
+      </ion-button>
+
+    </div>
+
+  </div>
 
 </ion-content>

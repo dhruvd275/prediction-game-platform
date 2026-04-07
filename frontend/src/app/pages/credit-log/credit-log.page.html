@@ -1,28 +1,104 @@
-<ion-header>
-  <ion-toolbar>
-    <ion-buttons slot="start">
-      <ion-back-button defaultHref="/home"></ion-back-button>
-    </ion-buttons>
-    <ion-title>Credit Log</ion-title>
-  </ion-toolbar>
-</ion-header>
+<ion-content [fullscreen]="true" class="credit-log-content">
 
-<ion-content class="ion-padding">
+  <!-- TOP NAV -->
+  <nav class="top-nav">
+    <div class="nav-brand" (click)="goHome()">
+      <div class="logo-mini">B</div>
+      <span class="nav-name">BOLDTAKE</span>
+    </div>
 
-  <ion-text *ngIf="loading">Loading credit log...</ion-text>
+    <div class="nav-links" [class.open]="menuOpen">
+      <a (click)="goEvents(); menuOpen = false">Events</a>
+      <a (click)="goHistory(); menuOpen = false">Predictions</a>
+      <a class="active" (click)="goCreditLog(); menuOpen = false">Credit Log</a>
+      <a (click)="goLeaderboard(); menuOpen = false">Leaderboard</a>
+    </div>
 
-  <ion-list *ngIf="!loading">
-    <ion-item *ngFor="let entry of log">
-      <ion-label>
-        <h2>{{ entry.type }} — {{ entry.amount > 0 ? '+' : '' }}{{ entry.amount }}</h2>
-        <p>{{ entry.description }}</p>
-        <p>{{ entry.created_at | date:'MMM d, y – h:mm a' }}</p>
-      </ion-label>
-    </ion-item>
-  </ion-list>
+    <div class="nav-actions">
+      <div class="credits-pill" *ngIf="credits !== null">
+        <ion-icon name="wallet-outline"></ion-icon>
+        <span>{{ credits }}</span>
+      </div>
+      <button class="icon-btn" (click)="logout()" title="Logout">
+        <ion-icon name="log-out-outline"></ion-icon>
+      </button>
+      <button class="icon-btn menu-toggle" (click)="toggleMenu()">
+        <ion-icon name="menu-outline"></ion-icon>
+      </button>
+    </div>
+  </nav>
 
-  <ion-text *ngIf="!loading && log.length === 0">
-    No transactions yet.
-  </ion-text>
+  <!-- BODY -->
+  <div class="credit-log-body">
+
+    <div class="page-header">
+      <h1 class="page-title">Credit Log</h1>
+      <p class="page-subtitle">Your transaction history</p>
+    </div>
+
+    <!-- BALANCE HERO -->
+    <div class="balance-hero" *ngIf="credits !== null">
+      <div class="balance-info">
+        <p class="balance-label">Current Balance</p>
+        <p class="balance-value">{{ credits }}</p>
+      </div>
+      <ion-icon name="wallet-outline" class="balance-icon"></ion-icon>
+    </div>
+
+    <!-- FILTERS -->
+    <div class="filter-tabs">
+      <button [class.active]="filter === 'all'" (click)="setFilter('all')">All</button>
+      <button [class.active]="filter === 'STAKE'" (click)="setFilter('STAKE')">Stakes</button>
+      <button [class.active]="filter === 'PAYOUT'" (click)="setFilter('PAYOUT')">Payouts</button>
+    </div>
+
+    <ion-text color="danger" *ngIf="errorMessage">
+      <p>{{ errorMessage }}</p>
+    </ion-text>
+
+    <!-- LOADING SKELETONS -->
+    <div class="rows-list" *ngIf="loading">
+      <div class="log-row" *ngFor="let i of [1,2,3,4]">
+        <ion-skeleton-text [animated]="true" style="width: 100%; height: 50px;"></ion-skeleton-text>
+      </div>
+    </div>
+
+    <!-- LOG ROWS -->
+    <div class="rows-list" *ngIf="!loading && log.length > 0">
+      <div
+        class="log-row"
+        *ngFor="let entry of log"
+        [class.stake]="entry.type === 'STAKE'"
+        [class.payout]="entry.type === 'PAYOUT'">
+
+        <div class="type-col">
+          <span class="type-badge">
+            <ion-icon *ngIf="entry.type === 'STAKE'" name="trending-down-outline"></ion-icon>
+            <ion-icon *ngIf="entry.type === 'PAYOUT'" name="trending-up-outline"></ion-icon>
+            {{ entry.type }}
+          </span>
+        </div>
+
+        <div class="desc-col">
+          <p class="description">{{ entry.description }}</p>
+          <p class="date">{{ entry.created_at | date:'MMM d, y – h:mm a' }}</p>
+        </div>
+
+        <div class="amount-col">
+          <p class="amount">
+            {{ entry.amount > 0 ? '+' : '' }}{{ entry.amount }}
+          </p>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- EMPTY STATE -->
+    <div class="empty-state" *ngIf="!loading && log.length === 0 && !errorMessage">
+      <ion-icon name="wallet-outline"></ion-icon>
+      <p>No transactions yet.</p>
+    </div>
+
+  </div>
 
 </ion-content>

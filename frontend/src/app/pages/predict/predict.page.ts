@@ -1,9 +1,11 @@
-import { Component, OnInit } from '@angular/core';
-import { IonicModule } from '@ionic/angular';
+import { Component } from '@angular/core';
+import { IonicModule, ViewWillEnter } from '@ionic/angular';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { Api } from '../../services/api';
+import { addIcons } from 'ionicons';
+import { logOutOutline, menuOutline, arrowBackOutline, flashOutline, lockClosedOutline, checkmarkCircleOutline, walletOutline } from 'ionicons/icons';
 
 @Component({
   selector: 'app-predict',
@@ -12,7 +14,7 @@ import { Api } from '../../services/api';
   standalone: true,
   imports: [IonicModule, CommonModule, FormsModule, RouterModule],
 })
-export class PredictPage implements OnInit {
+export class PredictPage implements ViewWillEnter {
 
   marketId!: number;
   market: any = null;
@@ -23,15 +25,28 @@ export class PredictPage implements OnInit {
 
   loading = false;
   credits: string | null = null;
+  errorMessage = '';
+  successMessage = '';
+  menuOpen = false;
 
   constructor(
     private route: ActivatedRoute,
     private api: Api,
     private router: Router
-  ) {}
+  ) {
+    addIcons({ logOutOutline, menuOutline, arrowBackOutline, flashOutline, lockClosedOutline, checkmarkCircleOutline, walletOutline });
+  }
 
-  ngOnInit() {
+  ionViewWillEnter() {
     this.marketId = Number(this.route.snapshot.paramMap.get('id'));
+    this.errorMessage = '';
+    this.successMessage = '';
+    this.selection = '';
+    this.stake = null;
+    this.loading = false;
+    this.market = null;
+    this.options = [];
+    this.menuOpen = false;
     this.loadMarket();
     this.loadOptions();
     this.loadCredits();
@@ -43,7 +58,7 @@ export class PredictPage implements OnInit {
         this.market = res.market;
       },
       error: () => {
-        alert('Failed to load market info');
+        this.errorMessage = 'Failed to load market info';
       }
     });
   }
@@ -68,28 +83,84 @@ export class PredictPage implements OnInit {
     });
   }
 
+  get potentialPayout(): string {
+    if (!this.stake || !this.market?.multiplier) return '0.00';
+    return (Number(this.stake) * Number(this.market.multiplier)).toFixed(2);
+  }
+
   submit() {
+    this.errorMessage = '';
+    this.successMessage = '';
+
     if (!this.selection) {
-      alert('Select a driver');
+      this.errorMessage = 'Select a driver';
       return;
     }
-    if (!this.stake || this.stake <= 0) {
-      alert('Enter a valid stake');
+
+    const stakeNum = Number(this.stake);
+    if (!this.stake || !Number.isFinite(stakeNum) || stakeNum <= 0) {
+      this.errorMessage = 'Stake must be a positive number';
+      return;
+    }
+
+    if (this.credits !== null && stakeNum > Number(this.credits)) {
+      this.errorMessage = 'Stake cannot be more than your credits';
       return;
     }
 
     this.loading = true;
 
-    this.api.submitPrediction(this.marketId, this.selection, this.stake).subscribe({
-      next: () => {
+    this.api.submitPrediction(this.marketId, this.selection, stakeNum).subscribe({
+      next: (res: any) => {
         this.loading = false;
-        alert('Prediction submitted!');
-        this.router.navigateByUrl('/home');
+        this.credits = res.credits;
+        this.successMessage = 'Prediction submitted!';
+        setTimeout(() => {
+          this.router.navigateByUrl('/home');
+        }, 1500);
       },
       error: (err) => {
         this.loading = false;
-        alert(err?.error?.message || 'Failed to submit prediction');
+        this.errorMessage = err?.error?.message || 'Failed to submit prediction';
       }
     });
+  }
+  
+
+  goBack() {
+    if (this.market?.event_id) {
+      this.router.navigateByUrl(`/events/${this.market.event_id}/markets`);
+    } else {
+      this.router.navigateByUrl('/events');
+    }
+  }
+
+  goHome() {
+    this.router.navigateByUrl('/home');
+  }
+
+  goEvents() {
+    this.router.navigateByUrl('/events');
+  }
+
+  goHistory() {
+    this.router.navigateByUrl('/history');
+  }
+
+  goCreditLog() {
+    this.router.navigateByUrl('/credit-log');
+  }
+
+  goLeaderboard() {
+    this.router.navigateByUrl('/leaderboard');
+  }
+
+  toggleMenu() {
+    this.menuOpen = !this.menuOpen;
+  }
+
+  logout() {
+    this.api.clearToken();
+    this.router.navigateByUrl('/login');
   }
 }

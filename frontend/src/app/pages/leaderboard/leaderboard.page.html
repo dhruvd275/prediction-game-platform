@@ -1,34 +1,109 @@
-<ion-header>
-  <ion-toolbar>
-    <ion-buttons slot="start">
-      <ion-back-button defaultHref="/home"></ion-back-button>
-    </ion-buttons>
-    <ion-title>Leaderboard</ion-title>
-  </ion-toolbar>
-</ion-header>
+<ion-content [fullscreen]="true" class="leaderboard-content">
 
-<ion-content class="ion-padding">
+  <!-- TOP NAV -->
+  <nav class="top-nav">
+    <div class="nav-brand" (click)="goHome()">
+      <div class="logo-mini">B</div>
+      <span class="nav-name">BOLDTAKE</span>
+    </div>
 
-  <ion-list *ngIf="loading">
-    <ion-item *ngFor="let i of [1,2,3,4,5]">
-      <ion-label>
-        <h2><ion-skeleton-text [animated]="true" style="width: 55%"></ion-skeleton-text></h2>
-        <p><ion-skeleton-text [animated]="true" style="width: 30%"></ion-skeleton-text></p>
-      </ion-label>
-    </ion-item>
-  </ion-list>
+    <div class="nav-links" [class.open]="menuOpen">
+      <a (click)="goEvents(); menuOpen = false">Events</a>
+      <a (click)="goHistory(); menuOpen = false">Predictions</a>
+      <a (click)="goCreditLog(); menuOpen = false">Credit Log</a>
+      <a class="active" (click)="goLeaderboard(); menuOpen = false">Leaderboard</a>
+    </div>
 
-  <ion-list *ngIf="!loading">
-    <ion-item *ngFor="let user of leaderboard; let i = index">
-      <ion-label>
-        <h2>#{{ i + 1 }} — {{ user.email }}</h2>
-        <p>Credits: {{ user.credits }}</p>
-      </ion-label>
-    </ion-item>
-  </ion-list>
+    <div class="nav-actions">
+      <div class="credits-pill" *ngIf="credits !== null">
+        <ion-icon name="wallet-outline"></ion-icon>
+        <span>{{ credits }}</span>
+      </div>
+      <button class="icon-btn" (click)="logout()" title="Logout">
+        <ion-icon name="log-out-outline"></ion-icon>
+      </button>
+      <button class="icon-btn menu-toggle" (click)="toggleMenu()">
+        <ion-icon name="menu-outline"></ion-icon>
+      </button>
+    </div>
+  </nav>
 
-  <ion-text *ngIf="!loading && leaderboard.length === 0">
-    No users yet.
-  </ion-text>
+  <!-- BODY -->
+  <div class="leaderboard-body">
+
+    <div class="page-header">
+      <h1 class="page-title">Leaderboard</h1>
+      <p class="page-subtitle">Top players by credits</p>
+    </div>
+
+    <ion-text color="danger" *ngIf="errorMessage">
+      <p>{{ errorMessage }}</p>
+    </ion-text>
+
+    <!-- LOADING -->
+    <div *ngIf="loading" class="loading-msg">
+      <ion-skeleton-text [animated]="true" style="width: 100%; height: 200px; border-radius: 16px;"></ion-skeleton-text>
+    </div>
+
+    <!-- PODIUM -->
+    <div class="podium" *ngIf="!loading && topThree.length > 0">
+
+      <!-- 2nd place -->
+      <div class="podium-spot second" *ngIf="topThree[1]" [class.is-me]="isCurrentUser(topThree[1])">
+        <div class="medal">🥈</div>
+        <div class="podium-card">
+          <p class="podium-rank">2ND</p>
+          <p class="podium-name">{{ topThree[1].username || topThree[1].email }}</p>
+          <p class="podium-credits">{{ topThree[1].credits }}</p>
+        </div>
+        <div class="podium-base second-base">2</div>
+      </div>
+
+      <!-- 1st place -->
+      <div class="podium-spot first" *ngIf="topThree[0]" [class.is-me]="isCurrentUser(topThree[0])">
+        <div class="medal">🥇</div>
+        <div class="podium-card">
+          <p class="podium-rank">1ST</p>
+          <p class="podium-name">{{ topThree[0].username || topThree[0].email }}</p>
+          <p class="podium-credits">{{ topThree[0].credits }}</p>
+        </div>
+        <div class="podium-base first-base">1</div>
+      </div>
+
+      <!-- 3rd place -->
+      <div class="podium-spot third" *ngIf="topThree[2]" [class.is-me]="isCurrentUser(topThree[2])">
+        <div class="medal">🥉</div>
+        <div class="podium-card">
+          <p class="podium-rank">3RD</p>
+          <p class="podium-name">{{ topThree[2].username || topThree[2].email }}</p>
+          <p class="podium-credits">{{ topThree[2].credits }}</p>
+        </div>
+        <div class="podium-base third-base">3</div>
+      </div>
+
+    </div>
+
+    <!-- THE REST -->
+    <div class="rest-list" *ngIf="!loading && rest.length > 0">
+      <div
+        class="rest-row"
+        *ngFor="let user of rest; let i = index"
+        [class.is-me]="isCurrentUser(user)">
+        <span class="rest-rank">#{{ i + 4 }}</span>
+        <span class="rest-name">
+          {{ user.username || user.email }}
+          <span class="you-tag" *ngIf="isCurrentUser(user)">YOU</span>
+        </span>
+        <span class="rest-credits">{{ user.credits }}</span>
+      </div>
+    </div>
+
+    <!-- EMPTY STATE -->
+    <div class="empty-state" *ngIf="!loading && leaderboard.length === 0 && !errorMessage">
+      <ion-icon name="trophy-outline"></ion-icon>
+      <p>No players on the leaderboard yet.</p>
+    </div>
+
+  </div>
 
 </ion-content>

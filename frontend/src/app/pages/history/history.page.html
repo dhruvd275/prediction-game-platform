@@ -1,38 +1,117 @@
-<ion-header>
-  <ion-toolbar>
-    <ion-buttons slot="start">
-      <ion-back-button defaultHref="/home"></ion-back-button>
-    </ion-buttons>
-    <ion-title>My Predictions</ion-title>
-  </ion-toolbar>
-</ion-header>
+<ion-content [fullscreen]="true" class="history-content">
 
-<ion-content class="ion-padding">
+  <!-- TOP NAV -->
+  <nav class="top-nav">
+    <div class="nav-brand" (click)="goHome()">
+      <div class="logo-mini">B</div>
+      <span class="nav-name">BOLDTAKE</span>
+    </div>
 
-  <ion-list *ngIf="loading">
-    <ion-item *ngFor="let i of [1,2,3]">
-      <ion-label>
-        <h2><ion-skeleton-text [animated]="true" style="width: 65%"></ion-skeleton-text></h2>
-        <p><ion-skeleton-text [animated]="true" style="width: 50%"></ion-skeleton-text></p>
-        <p><ion-skeleton-text [animated]="true" style="width: 55%"></ion-skeleton-text></p>
-        <p><ion-skeleton-text [animated]="true" style="width: 40%"></ion-skeleton-text></p>
-      </ion-label>
-    </ion-item>
-  </ion-list>
+    <div class="nav-links" [class.open]="menuOpen">
+      <a (click)="goEvents(); menuOpen = false">Events</a>
+      <a class="active" (click)="goHistory(); menuOpen = false">Predictions</a>
+      <a (click)="goCreditLog(); menuOpen = false">Credit Log</a>
+      <a (click)="goLeaderboard(); menuOpen = false">Leaderboard</a>
+    </div>
 
-  <ion-list *ngIf="!loading">
-    <ion-item *ngFor="let p of predictions">
-      <ion-label>
-        <h2>{{ p.event_name }} — {{ p.market_type }}</h2>
-        <p>Selection: {{ p.selection }} • Stake: {{ p.stake }}</p>
-        <p>Status: {{ p.prediction_status }} • Multiplier: {{ p.multiplier }}</p>
-        <p>Submitted: {{ p.submitted_at | date:'MMM d, y – h:mm a' }}</p>
-      </ion-label>
-    </ion-item>
-  </ion-list>
+    <div class="nav-actions">
+      <div class="credits-pill" *ngIf="credits !== null">
+        <ion-icon name="wallet-outline"></ion-icon>
+        <span>{{ credits }}</span>
+      </div>
+      <button class="icon-btn" (click)="logout()" title="Logout">
+        <ion-icon name="log-out-outline"></ion-icon>
+      </button>
+      <button class="icon-btn menu-toggle" (click)="toggleMenu()">
+        <ion-icon name="menu-outline"></ion-icon>
+      </button>
+    </div>
+  </nav>
 
-  <ion-text *ngIf="!loading && predictions.length === 0">
-    No predictions yet.
-  </ion-text>
+  <!-- BODY -->
+  <div class="history-body">
+
+    <div class="page-header">
+      <h1 class="page-title">My Predictions <span class="count">({{ predictions.length }})</span></h1>
+    </div>
+
+    <!-- FILTERS + SORT -->
+    <div class="controls-row">
+      <div class="filter-tabs">
+        <button [class.active]="filter === 'all'" (click)="setFilter('all')">All</button>
+        <button [class.active]="filter === 'PENDING'" (click)="setFilter('PENDING')">Pending</button>
+        <button [class.active]="filter === 'WON'" (click)="setFilter('WON')">Won</button>
+        <button [class.active]="filter === 'LOST'" (click)="setFilter('LOST')">Lost</button>
+      </div>
+
+      <div class="sort-control">
+        <label>Sort:</label>
+        <select [(ngModel)]="sortBy" (change)="applyFilterAndSort()">
+          <option value="newest">Newest</option>
+          <option value="oldest">Oldest</option>
+          <option value="highest">Highest Stake</option>
+          <option value="lowest">Lowest Stake</option>
+        </select>
+      </div>
+    </div>
+
+    <ion-text color="danger" *ngIf="errorMessage">
+      <p>{{ errorMessage }}</p>
+    </ion-text>
+
+    <!-- LOADING SKELETONS -->
+    <div class="rows-list" *ngIf="loading">
+      <div class="prediction-row" *ngFor="let i of [1,2,3,4]">
+        <ion-skeleton-text [animated]="true" style="width: 100%; height: 60px;"></ion-skeleton-text>
+      </div>
+    </div>
+
+    <!-- PREDICTION ROWS -->
+    <div class="rows-list" *ngIf="!loading && predictions.length > 0">
+      <div
+        class="prediction-row"
+        *ngFor="let p of predictions"
+        [class.won]="p.prediction_status === 'WON'"
+        [class.lost]="p.prediction_status === 'LOST'"
+        [class.pending]="p.prediction_status === 'PENDING'">
+
+        <div class="status-col">
+          <span class="status-label">{{ p.prediction_status }}</span>
+        </div>
+
+        <div class="event-col">
+          <p class="event-name">{{ p.event_name }}</p>
+          <p class="market-type">{{ p.market_type }}</p>
+        </div>
+
+        <div class="selection-col">
+          <p class="col-label">Pick</p>
+          <p class="selection">{{ p.selection }}</p>
+        </div>
+
+        <div class="calc-col">
+          <p class="col-label">Stake × Mult</p>
+          <p class="calc">{{ p.stake }} × {{ p.multiplier }}</p>
+        </div>
+
+        <div class="payout-col">
+          <p class="col-label">{{ p.prediction_status === 'WON' ? 'Won' : 'Potential' }}</p>
+          <p class="payout">{{ getPayout(p) }}</p>
+        </div>
+
+        <div class="date-col">
+          <p class="col-label">Submitted</p>
+          <p class="date">{{ p.submitted_at | date:'MMM d, h:mm a' }}</p>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- EMPTY STATE -->
+    <div class="empty-state" *ngIf="!loading && predictions.length === 0 && !errorMessage">
+      <p>No predictions found.</p>
+    </div>
+
+  </div>
 
 </ion-content>

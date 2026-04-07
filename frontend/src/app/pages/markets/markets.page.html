@@ -1,40 +1,109 @@
-<ion-header>
-  <ion-toolbar>
-    <ion-buttons slot="start">
-      <ion-back-button defaultHref="/events"></ion-back-button>
-    </ion-buttons>
-    <ion-title>Markets</ion-title>
-    <ion-note slot="end" class="ion-padding-end" *ngIf="credits !== null">
-      Credits: {{ credits }}
-    </ion-note>
-  </ion-toolbar>
-</ion-header>
+<ion-content [fullscreen]="true" class="markets-content">
 
-<ion-content class="ion-padding">
+  <!-- TOP NAV -->
+  <nav class="top-nav">
+    <div class="nav-brand" (click)="goHome()">
+      <div class="logo-mini">B</div>
+      <span class="nav-name">BOLDTAKE</span>
+    </div>
 
-  <div *ngIf="event">
-    <h2>{{ event.name }}</h2>
-    <p>{{ event.sport }} • {{ event.starts_at | date:'MMM d, y – h:mm a' }}</p>
+    <div class="nav-links" [class.open]="menuOpen">
+      <a class="active" (click)="goEvents(); menuOpen = false">Events</a>
+      <a (click)="goHistory(); menuOpen = false">Predictions</a>
+      <a (click)="goCreditLog(); menuOpen = false">Credit Log</a>
+      <a (click)="goLeaderboard(); menuOpen = false">Leaderboard</a>
+    </div>
+
+    <div class="nav-actions">
+      <button class="icon-btn" (click)="logout()" title="Logout">
+        <ion-icon name="log-out-outline"></ion-icon>
+      </button>
+      <button class="icon-btn menu-toggle" (click)="toggleMenu()">
+        <ion-icon name="menu-outline"></ion-icon>
+      </button>
+    </div>
+  </nav>
+
+  <!-- BODY -->
+  <div class="markets-body">
+
+    <a class="back-link" (click)="goEvents()">
+      <ion-icon name="arrow-back-outline"></ion-icon>
+      Back to Events
+    </a>
+
+    <!-- EVENT HERO -->
+    <div class="event-hero" *ngIf="event">
+      <span class="sport-badge">{{ event.sport }}</span>
+      <h1 class="event-name">{{ event.name }}</h1>
+      <div class="event-meta-row">
+        <div class="event-meta">
+          <ion-icon name="calendar-outline"></ion-icon>
+          <span>{{ event.starts_at | date:'MMM d, y' }}</span>
+        </div>
+        <div class="event-meta">
+          <ion-icon name="time-outline"></ion-icon>
+          <span>{{ event.starts_at | date:'h:mm a' }}</span>
+        </div>
+      </div>
+    </div>
+
+    <h2 class="section-title">Markets</h2>
+
+    <ion-text color="danger" *ngIf="errorMessage">
+      <p>{{ errorMessage }}</p>
+    </ion-text>
+
+    <!-- LOADING SKELETONS -->
+    <div class="markets-grid" *ngIf="loading">
+      <div class="market-card" *ngFor="let i of [1,2,3,4,5,6]">
+        <ion-skeleton-text [animated]="true" style="width: 60%; height: 20px;"></ion-skeleton-text>
+        <ion-skeleton-text [animated]="true" style="width: 40px; height: 20px; margin-top: 12px;"></ion-skeleton-text>
+        <ion-skeleton-text [animated]="true" style="width: 80px; height: 36px; margin-top: 16px;"></ion-skeleton-text>
+        <ion-skeleton-text [animated]="true" style="width: 70%; height: 14px; margin-top: 12px;"></ion-skeleton-text>
+      </div>
+    </div>
+
+    <!-- MARKET CARDS -->
+    <div class="markets-grid" *ngIf="!loading && markets.length > 0">
+      <div
+        class="market-card"
+        *ngFor="let m of markets"
+        [class.open]="m.status === 'OPEN'"
+        [class.locked]="m.status === 'LOCKED'"
+        [class.resolved]="m.status === 'RESOLVED'"
+        (click)="openPredict(m)">
+
+        <div class="market-header">
+          <h3 class="market-type">{{ m.type }}</h3>
+          <span class="status-pill">
+            <ion-icon *ngIf="m.status === 'OPEN'" name="flash-outline"></ion-icon>
+            <ion-icon *ngIf="m.status === 'LOCKED'" name="lock-closed-outline"></ion-icon>
+            <ion-icon *ngIf="m.status === 'RESOLVED'" name="checkmark-circle-outline"></ion-icon>
+            {{ m.status }}
+          </span>
+        </div>
+
+        <div class="multiplier">
+          {{ m.multiplier }}<span>x</span>
+        </div>
+
+        <div class="result-line" *ngIf="m.status === 'RESOLVED' && m.result">
+          Winner: <strong>{{ m.result }}</strong>
+        </div>
+
+        <div class="cutoff-line">
+          Cutoff: {{ m.cutoff_at | date:'MMM d, h:mm a' }}
+        </div>
+
+      </div>
+    </div>
+
+    <!-- EMPTY STATE -->
+    <div class="empty-state" *ngIf="!loading && markets.length === 0 && !errorMessage">
+      <p>No markets available for this event.</p>
+    </div>
+
   </div>
-
-  <ion-list *ngIf="loading">
-    <ion-item *ngFor="let i of [1,2,3,4]">
-      <ion-label>
-        <h2><ion-skeleton-text [animated]="true" style="width: 50%"></ion-skeleton-text></h2>
-        <p><ion-skeleton-text [animated]="true" style="width: 70%"></ion-skeleton-text></p>
-        <p><ion-skeleton-text [animated]="true" style="width: 45%"></ion-skeleton-text></p>
-      </ion-label>
-    </ion-item>
-  </ion-list>
-
-  <ion-list *ngIf="!loading">
-    <ion-item *ngFor="let m of markets" button detail [disabled]="m.status !== 'OPEN'" (click)="openPredict(m)">
-      <ion-label>
-        <h2>{{ m.type }}</h2>
-        <p>Multiplier: {{ m.multiplier }} • Status: {{ m.status }}</p>
-        <p>Cutoff: {{ m.cutoff_at | date:'MMM d, y – h:mm a' }}</p>
-      </ion-label>
-    </ion-item>
-  </ion-list>
 
 </ion-content>

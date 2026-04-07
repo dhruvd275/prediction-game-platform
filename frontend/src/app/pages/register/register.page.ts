@@ -10,12 +10,14 @@ import { eye, eyeOff } from 'ionicons/icons';
 @Component({
   selector: 'app-register',
   templateUrl: './register.page.html',
+  styleUrls: ['./register.page.scss'],
   standalone: true,
   imports: [IonicModule, CommonModule, FormsModule],
 })
 export class RegisterPage {
 
   email = '';
+  username = '';
   password = '';
   errorMessage = '';
   loading = false;
@@ -42,6 +44,8 @@ export class RegisterPage {
   validate(): string {
     if (!this.email.trim()) return 'Email is required';
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.email)) return 'Enter a valid email';
+    if (!this.username.trim()) return 'Username is required';
+    if (this.username.length < 3) return 'Username must be at least 3 characters';
     if (!this.allRulesMet) return 'Password does not meet all requirements';
     return '';
   }
@@ -52,7 +56,7 @@ export class RegisterPage {
 
     this.loading = true;
 
-    this.api.register(this.email, this.password).subscribe({
+    this.api.register(this.email, this.username, this.password).subscribe({
       next: () => {
         this.loading = false;
         this.router.navigateByUrl('/login');

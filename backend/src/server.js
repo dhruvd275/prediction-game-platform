@@ -28,25 +28,33 @@ app.get("/db-test", async (req, res) => {
 
 app.post("/auth/register", async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { email, username, password } = req.body;
 
-    if (!email || !password) {
-      return res.status(400).json({ message: "Email and password are required" });
+    if (!email || !username || !password) {
+      return res.status(400).json({ message: "Email, username and password are required" });
     }
     if (password.length < 6) {
       return res.status(400).json({ message: "Password must be at least 6 characters" });
     }
+    if (username.length < 3) {
+      return res.status(400).json({ message: "Username must be at least 3 characters" });
+    }
 
-    const existing = await pool.query("SELECT id FROM users WHERE email=$1", [email]);
-    if (existing.rows.length > 0) {
+    const existingEmail = await pool.query("SELECT id FROM users WHERE email=$1", [email]);
+    if (existingEmail.rows.length > 0) {
       return res.status(409).json({ message: "Email already registered" });
+    }
+
+    const existingUsername = await pool.query("SELECT id FROM users WHERE username=$1", [username]);
+    if (existingUsername.rows.length > 0) {
+      return res.status(409).json({ message: "Username already taken" });
     }
 
     const passwordHash = await bcrypt.hash(password, 10);
 
     const result = await pool.query(
-      "INSERT INTO users (email, password_hash) VALUES ($1, $2) RETURNING id, email, credits, created_at",
-      [email, passwordHash]
+      "INSERT INTO users (email, username, password_hash) VALUES ($1, $2, $3) RETURNING id, email, username, credits, created_at",
+      [email, username, passwordHash]
     );
 
     return res.status(201).json({
@@ -68,7 +76,7 @@ app.post("/auth/login", async (req, res) => {
     }
 
     const result = await pool.query(
-      "SELECT id, email, password_hash, credits FROM users WHERE email=$1",
+      "SELECT id, email, username, password_hash, credits FROM users WHERE email=$1",
       [email]
     );
 
@@ -92,7 +100,7 @@ app.post("/auth/login", async (req, res) => {
     return res.json({
       message: "Login successful",
       token,
-      user: { id: user.id, email: user.email, credits: user.credits },
+      user: { id: user.id, email: user.email, username: user.username, credits: user.credits },
     });
   } catch (err) {
     console.error(err);
@@ -105,7 +113,7 @@ app.get("/me", authMiddleware, async (req, res) => {
     const userId = req.user.userId;
 
     const result = await pool.query(
-      "SELECT id, email, credits, created_at FROM users WHERE id=$1",
+      "SELECT id, email, username, credits, created_at FROM users WHERE id=$1",
       [userId]
     );
 
@@ -180,7 +188,7 @@ app.get("/me/credit-log", authMiddleware, async (req, res) => {
 app.get("/leaderboard", async (req, res) => {
   try {
     const result = await pool.query(
-      "SELECT id, email, credits FROM users ORDER BY credits DESC LIMIT 20"
+      "SELECT id, username, credits FROM users ORDER BY credits DESC LIMIT 20"
     );
 
     res.json({ leaderboard: result.rows });
@@ -287,6 +295,7 @@ app.post("/admin/events", async (req, res) => {
 });
 
 // Admin create markets for event
+// Admin create markets for event
 app.post("/admin/events/:id/markets", async (req, res) => {
   try {
     const adminKey = req.headers["x-admin-key"];
@@ -302,6 +311,38 @@ app.post("/admin/events/:id/markets", async (req, res) => {
       return res.status(400).json({ message: "markets array is required" });
     }
 
+    // Check the event's sport
+    const eventResult = await pool.query("SELECT sport FROM events WHERE id=$1", [eventId]);
+    if (eventResult.rows.length === 0) {
+      return res.status(404).json({ message: "Event not found" });
+    }
+    const sport = eventResult.rows[0].sport;
+
+    const f1Drivers = [
+      { value: 'VER', label: 'Max Verstappen' },
+      { value: 'HAD', label: 'Isack Hadjar' },
+      { value: 'NOR', label: 'Lando Norris' },
+      { value: 'PIA', label: 'Oscar Piastri' },
+      { value: 'LEC', label: 'Charles Leclerc' },
+      { value: 'HAM', label: 'Lewis Hamilton' },
+      { value: 'RUS', label: 'George Russell' },
+      { value: 'ANT', label: 'Kimi Antonelli' },
+      { value: 'ALO', label: 'Fernando Alonso' },
+      { value: 'STR', label: 'Lance Stroll' },
+      { value: 'ALB', label: 'Alexander Albon' },
+      { value: 'SAI', label: 'Carlos Sainz' },
+      { value: 'GAS', label: 'Pierre Gasly' },
+      { value: 'COL', label: 'Franco Colapinto' },
+      { value: 'BEA', label: 'Oliver Bearman' },
+      { value: 'BOR', label: 'Gabriel Bortoleto' },
+      { value: 'HUL', label: 'Nico Hulkenberg' },
+      { value: 'DRU', label: 'Jack Doohan' },
+      { value: 'LAW', label: 'Liam Lawson' },
+      { value: 'LIN', label: 'Arvid Lindblad' },
+      { value: 'BOT', label: 'Valtteri Bottas' },
+      { value: 'PER', label: 'Sergio Perez' },
+    ];
+
     const created = [];
 
     for (const m of markets) {
@@ -314,7 +355,18 @@ app.post("/admin/events/:id/markets", async (req, res) => {
         [eventId, m.type, m.multiplier, m.cutoff_at]
       );
 
-      created.push(result.rows[0]);
+      const newMarket = result.rows[0];
+      created.push(newMarket);
+
+      // Auto-assign driver options for F1 events
+      if (sport.toUpperCase() === 'F1') {
+        for (const driver of f1Drivers) {
+          await pool.query(
+            "INSERT INTO market_options (market_id, value, label) VALUES ($1, $2, $3)",
+            [newMarket.id, driver.value, driver.label]
+          );
+        }
+      }
     }
 
     return res.status(201).json({
@@ -347,7 +399,18 @@ app.get("/markets/:id/options", async (req, res) => {
 app.get("/events", async (req, res) => {
   try {
     const result = await pool.query(
-      "SELECT id, sport, name, starts_at FROM events ORDER BY starts_at ASC"
+      `
+      SELECT
+        e.id,
+        e.sport,
+        e.name,
+        e.starts_at,
+        COUNT(m.id) AS market_count
+      FROM events e
+      LEFT JOIN markets m ON m.event_id = e.id
+      GROUP BY e.id
+      ORDER BY e.starts_at ASC
+      `
     );
 
     res.json({ events: result.rows });

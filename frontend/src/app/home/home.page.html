@@ -1,67 +1,102 @@
-<ion-header>
-  <ion-toolbar>
-    <ion-title>Dashboard</ion-title>
-  </ion-toolbar>
-</ion-header>
+<ion-content [fullscreen]="true" class="dashboard-content">
 
-<ion-content class="ion-padding">
-  <div *ngIf="user">
-
-    <h2>Welcome</h2>
-
-    <p>Email: {{ user.email }}</p>
-
-    <p>Credits: {{ user.credits }}</p>
-
-    <div *ngIf="stats">
-      <h3>Your Stats</h3>
-      <ion-list>
-        <ion-item>
-          <ion-label>Total Predictions</ion-label>
-          <ion-note slot="end">{{ stats.total }}</ion-note>
-        </ion-item>
-        <ion-item>
-          <ion-label>Won</ion-label>
-          <ion-note slot="end">{{ stats.won }}</ion-note>
-        </ion-item>
-        <ion-item>
-          <ion-label>Lost</ion-label>
-          <ion-note slot="end">{{ stats.lost }}</ion-note>
-        </ion-item>
-        <ion-item>
-          <ion-label>Pending</ion-label>
-          <ion-note slot="end">{{ stats.pending }}</ion-note>
-        </ion-item>
-        <ion-item>
-          <ion-label>Accuracy</ion-label>
-          <ion-note slot="end">{{ stats.accuracy }}%</ion-note>
-        </ion-item>
-        <ion-item>
-          <ion-label>Total Staked</ion-label>
-          <ion-note slot="end">{{ stats.total_staked }}</ion-note>
-        </ion-item>
-      </ion-list>
+  <!-- TOP NAV -->
+  <nav class="top-nav">
+    <div class="nav-brand">
+      <div class="logo-mini">B</div>
+      <span class="nav-name">BOLDTAKE</span>
     </div>
 
-    <ion-button expand="block" (click)="goEvents()">
-      View Events
-    </ion-button>
+    <div class="nav-links" [class.open]="menuOpen">
+      <a (click)="goEvents(); menuOpen = false">Events</a>
+      <a (click)="goHistory(); menuOpen = false">Predictions</a>
+      <a (click)="goCreditLog(); menuOpen = false">Credit Log</a>
+      <a (click)="goLeaderboard(); menuOpen = false">Leaderboard</a>
+    </div>
 
-    <ion-button expand="block" (click)="goHistory()">
-      My Predictions
-    </ion-button>
+    <div class="nav-actions">
+      <button class="icon-btn logout-btn" (click)="logout()" title="Logout">
+        <ion-icon name="log-out-outline"></ion-icon>
+      </button>
+      <button class="icon-btn menu-toggle" (click)="toggleMenu()">
+        <ion-icon name="menu-outline"></ion-icon>
+      </button>
+    </div>
+  </nav>
 
-    <ion-button expand="block" (click)="goCreditLog()">
-      Credit Log
-    </ion-button>
+  <!-- DASHBOARD BODY -->
+  <div class="dashboard-body" *ngIf="user">
 
-    <ion-button expand="block" (click)="goLeaderboard()">
-      Leaderboard
-    </ion-button>
+    <div class="welcome">
+      <p class="welcome-sub">Welcome back,</p>
+      <h1 class="welcome-name">{{ user.username || user.email }}</h1>
+    </div>
 
-    <ion-button expand="block" color="danger" (click)="logout()">
-      Logout
-    </ion-button>
+    <!-- STAT CARDS -->
+    <div class="stats-row">
+      <div class="stat-card credits">
+        <p class="stat-label">Credits</p>
+        <p class="stat-value">{{ user.credits }}</p>
+      </div>
+      <div class="stat-card total">
+        <p class="stat-label">Total Predictions</p>
+        <p class="stat-value">{{ stats?.total || 0 }}</p>
+      </div>
+      <div class="stat-card won">
+        <p class="stat-label">Won</p>
+        <p class="stat-value">{{ stats?.won || 0 }}</p>
+      </div>
+      <div class="stat-card accuracy">
+        <p class="stat-label">Accuracy</p>
+        <p class="stat-value">{{ stats?.accuracy || '0.0' }}%</p>
+      </div>
+    </div>
+
+    <!-- TWO PANELS -->
+    <div class="panels-row">
+
+      <!-- UPCOMING EVENTS -->
+      <div class="panel">
+        <div class="panel-header">
+          <ion-icon name="flag-outline"></ion-icon>
+          <h3>Upcoming Events</h3>
+        </div>
+        <div class="panel-body">
+          <div *ngIf="upcomingEvents.length === 0" class="empty">
+            No upcoming events
+          </div>
+          <div *ngFor="let e of upcomingEvents" class="event-row" (click)="openMarkets(e.id)">
+            <div class="event-info">
+              <p class="event-name">{{ e.name }}</p>
+              <p class="event-meta">{{ e.sport }} • {{ e.starts_at | date:'MMM d, h:mm a' }}</p>
+            </div>
+            <ion-icon name="chevron-forward"></ion-icon>
+          </div>
+        </div>
+      </div>
+
+      <!-- TOP PLAYERS -->
+      <div class="panel">
+        <div class="panel-header">
+          <ion-icon name="trophy-outline"></ion-icon>
+          <h3>Top Players</h3>
+        </div>
+        <div class="panel-body">
+          <div *ngIf="topPlayers.length === 0" class="empty">
+            No players yet
+          </div>
+          <div *ngFor="let p of topPlayers; let i = index" class="player-row">
+            <span class="rank" [class.gold]="i === 0" [class.silver]="i === 1" [class.bronze]="i === 2">
+              {{ i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : '#' + (i + 1) }}
+            </span>
+            <span class="player-name">{{ p.username || p.email }}</span>
+            <span class="player-credits">{{ p.credits }}</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
 
   </div>
+
 </ion-content>

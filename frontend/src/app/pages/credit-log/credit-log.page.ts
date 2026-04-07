@@ -1,8 +1,10 @@
-import { Component, OnInit } from '@angular/core';
-import { IonicModule } from '@ionic/angular';
+import { Component } from '@angular/core';
+import { IonicModule, ViewWillEnter } from '@ionic/angular';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { Api } from '../../services/api';
+import { addIcons } from 'ionicons';
+import { logOutOutline, menuOutline, walletOutline, trendingDownOutline, trendingUpOutline } from 'ionicons/icons';
 
 @Component({
   selector: 'app-credit-log',
@@ -11,28 +13,90 @@ import { Api } from '../../services/api';
   standalone: true,
   imports: [IonicModule, CommonModule, RouterModule],
 })
-export class CreditLogPage implements OnInit {
+export class CreditLogPage implements ViewWillEnter {
 
+  allLog: any[] = [];
   log: any[] = [];
   loading = true;
+  errorMessage = '';
+  filter: 'all' | 'STAKE' | 'PAYOUT' = 'all';
+  credits: string | null = null;
+  menuOpen = false;
 
-  constructor(private api: Api) {}
+  constructor(private api: Api, private router: Router) {
+    addIcons({ logOutOutline, menuOutline, walletOutline, trendingDownOutline, trendingUpOutline });
+  }
 
-  ngOnInit() {
+  ionViewWillEnter() {
+    this.menuOpen = false;
+    this.loadCredits();
     this.loadLog();
+  }
+
+  loadCredits() {
+    this.api.me().subscribe({
+      next: (res: any) => {
+        this.credits = res.user.credits;
+      },
+      error: () => {}
+    });
   }
 
   loadLog() {
     this.loading = true;
+    this.errorMessage = '';
     this.api.myCreditLog().subscribe({
       next: (res: any) => {
-        this.log = res.log || [];
+        this.allLog = res.log || [];
+        this.applyFilter();
         this.loading = false;
       },
       error: () => {
         this.loading = false;
-        alert('Failed to load credit log');
+        this.errorMessage = 'Failed to load credit log. Please try again.';
       }
     });
+  }
+
+  setFilter(filter: 'all' | 'STAKE' | 'PAYOUT') {
+    this.filter = filter;
+    this.applyFilter();
+  }
+
+  applyFilter() {
+    if (this.filter === 'all') {
+      this.log = this.allLog;
+    } else {
+      this.log = this.allLog.filter(entry => entry.type === this.filter);
+    }
+  }
+
+  goHome() {
+    this.router.navigateByUrl('/home');
+  }
+
+  goEvents() {
+    this.router.navigateByUrl('/events');
+  }
+
+  goHistory() {
+    this.router.navigateByUrl('/history');
+  }
+
+  goCreditLog() {
+    this.router.navigateByUrl('/credit-log');
+  }
+
+  goLeaderboard() {
+    this.router.navigateByUrl('/leaderboard');
+  }
+
+  toggleMenu() {
+    this.menuOpen = !this.menuOpen;
+  }
+
+  logout() {
+    this.api.clearToken();
+    this.router.navigateByUrl('/login');
   }
 }

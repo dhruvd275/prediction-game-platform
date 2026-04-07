@@ -3,6 +3,8 @@ import { IonicModule } from '@ionic/angular';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { Api } from '../../services/api';
+import { addIcons } from 'ionicons';
+import { logOutOutline, menuOutline, arrowBackOutline, calendarOutline, timeOutline, lockClosedOutline, checkmarkCircleOutline, flashOutline } from 'ionicons/icons';
 
 @Component({
   selector: 'app-markets',
@@ -18,22 +20,25 @@ export class MarketsPage implements OnInit {
 
   markets: any[] = [];
   loading = true;
-  credits: string | null = null;
+  errorMessage = '';
+  menuOpen = false;
 
   constructor(
     private route: ActivatedRoute,
     private api: Api,
     private router: Router
-  ) {}
+  ) {
+    addIcons({ logOutOutline, menuOutline, arrowBackOutline, calendarOutline, timeOutline, lockClosedOutline, checkmarkCircleOutline, flashOutline });
+  }
 
   ngOnInit() {
     this.eventId = Number(this.route.snapshot.paramMap.get('id'));
     this.load();
-    this.loadCredits();
   }
 
   load() {
     this.loading = true;
+    this.errorMessage = '';
 
     this.api.getEvent(this.eventId).subscribe({
       next: (res: any) => {
@@ -51,22 +56,42 @@ export class MarketsPage implements OnInit {
       },
       error: () => {
         this.loading = false;
-        alert('Failed to load markets');
+        this.errorMessage = 'Failed to load markets. Please try again.';
       }
-    });
-  }
-
-  loadCredits() {
-    this.api.me().subscribe({
-      next: (res: any) => {
-        this.credits = res.user.credits;
-      },
-      error: () => {}
     });
   }
 
   openPredict(m: any) {
     if (m.status !== 'OPEN') return;
     this.router.navigateByUrl(`/markets/${m.id}/predict`);
+  }
+
+  goHome() {
+    this.router.navigateByUrl('/home');
+  }
+
+  goEvents() {
+    this.router.navigateByUrl('/events');
+  }
+
+  goHistory() {
+    this.router.navigateByUrl('/history');
+  }
+
+  goCreditLog() {
+    this.router.navigateByUrl('/credit-log');
+  }
+
+  goLeaderboard() {
+    this.router.navigateByUrl('/leaderboard');
+  }
+
+  toggleMenu() {
+    this.menuOpen = !this.menuOpen;
+  }
+
+  logout() {
+    this.api.clearToken();
+    this.router.navigateByUrl('/login');
   }
 }

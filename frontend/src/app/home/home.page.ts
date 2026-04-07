@@ -3,6 +3,8 @@ import { IonicModule, ViewWillEnter } from '@ionic/angular';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { Api } from '../services/api';
+import { addIcons } from 'ionicons';
+import { logOutOutline, menuOutline, flagOutline, trophyOutline, chevronForward } from 'ionicons/icons';
 
 @Component({
   selector: 'app-home',
@@ -15,17 +17,24 @@ export class HomePage implements ViewWillEnter {
 
   user: any = null;
   stats: any = null;
+  upcomingEvents: any[] = [];
+  topPlayers: any[] = [];
+  menuOpen = false;
 
-  constructor(private api: Api, private router: Router) {}
+  constructor(private api: Api, private router: Router) {
+    addIcons({ logOutOutline, menuOutline, flagOutline, trophyOutline, chevronForward });
+  }
 
   ionViewWillEnter() {
+    this.menuOpen = false;
     this.loadUser();
     this.loadStats();
+    this.loadUpcomingEvents();
+    this.loadTopPlayers();
   }
 
   loadUser() {
     const token = this.api.getToken();
-
     if (!token) {
       this.router.navigateByUrl('/login');
       return;
@@ -51,6 +60,27 @@ export class HomePage implements ViewWillEnter {
     });
   }
 
+  loadUpcomingEvents() {
+    this.api.getEvents().subscribe({
+      next: (res: any) => {
+        const now = new Date();
+        this.upcomingEvents = (res.events || [])
+          .filter((e: any) => new Date(e.starts_at) > now)
+          .slice(0, 3);
+      },
+      error: () => {}
+    });
+  }
+
+  loadTopPlayers() {
+    this.api.getLeaderboard().subscribe({
+      next: (res: any) => {
+        this.topPlayers = (res.leaderboard || []).slice(0, 5);
+      },
+      error: () => {}
+    });
+  }
+
   goEvents() {
     this.router.navigateByUrl('/events');
   }
@@ -65,6 +95,14 @@ export class HomePage implements ViewWillEnter {
 
   goLeaderboard() {
     this.router.navigateByUrl('/leaderboard');
+  }
+
+  openMarkets(eventId: number) {
+    this.router.navigateByUrl(`/events/${eventId}/markets`);
+  }
+
+  toggleMenu() {
+    this.menuOpen = !this.menuOpen;
   }
 
   logout() {

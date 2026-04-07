@@ -60,9 +60,10 @@ export class Api {
     return this.http.get(`${this.baseUrl}/health`);
   }
 
-  register(email: string, password: string): Observable<any> {
+  register(email: string, username: string, password: string): Observable<any> {
     return this.http.post(`${this.baseUrl}/auth/register`, {
       email,
+      username,
       password
     });
   }

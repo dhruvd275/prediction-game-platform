@@ -1,55 +1,115 @@
-<ion-header>
-  <ion-toolbar>
-    <ion-buttons slot="start">
-      <ion-back-button defaultHref="/events"></ion-back-button>
-    </ion-buttons>
-    <ion-title>Submit Prediction</ion-title>
-    <ion-note slot="end" class="ion-padding-end" *ngIf="credits !== null">
-      Credits: {{ credits }}
-    </ion-note>
-  </ion-toolbar>
-</ion-header>
+<ion-content [fullscreen]="true" class="predict-content">
 
-<ion-content class="ion-padding">
+  <!-- TOP NAV -->
+  <nav class="top-nav">
+    <div class="nav-brand" (click)="goHome()">
+      <div class="logo-mini">B</div>
+      <span class="nav-name">BOLDTAKE</span>
+    </div>
 
-  <div *ngIf="market">
-    <h2>{{ market.event_name }}</h2>
-    <p>Market: {{ market.market_type }}</p>
-    <p>Multiplier: {{ market.multiplier }}x</p>
-    <p>Status: {{ market.status }}</p>
+    <div class="nav-links" [class.open]="menuOpen">
+      <a class="active" (click)="goEvents(); menuOpen = false">Events</a>
+      <a (click)="goHistory(); menuOpen = false">Predictions</a>
+      <a (click)="goCreditLog(); menuOpen = false">Credit Log</a>
+      <a (click)="goLeaderboard(); menuOpen = false">Leaderboard</a>
+    </div>
+
+    <div class="nav-actions">
+      <div class="credits-pill" *ngIf="credits !== null">
+        <ion-icon name="wallet-outline"></ion-icon>
+        <span>{{ credits }}</span>
+      </div>
+      <button class="icon-btn" (click)="logout()" title="Logout">
+        <ion-icon name="log-out-outline"></ion-icon>
+      </button>
+      <button class="icon-btn menu-toggle" (click)="toggleMenu()">
+        <ion-icon name="menu-outline"></ion-icon>
+      </button>
+    </div>
+  </nav>
+
+  <!-- BODY -->
+  <div class="predict-body">
+
+    <a class="back-link" (click)="goBack()">
+      <ion-icon name="arrow-back-outline"></ion-icon>
+      Back to Markets
+    </a>
+
+    <!-- MARKET HERO -->
+    <div class="market-hero" *ngIf="market">
+      <div class="hero-top">
+        <span class="sport-badge">{{ market.sport }}</span>
+        <span class="status-pill" [class.open]="market.status === 'OPEN'" [class.locked]="market.status === 'LOCKED'" [class.resolved]="market.status === 'RESOLVED'">
+          <ion-icon *ngIf="market.status === 'OPEN'" name="flash-outline"></ion-icon>
+          <ion-icon *ngIf="market.status === 'LOCKED'" name="lock-closed-outline"></ion-icon>
+          <ion-icon *ngIf="market.status === 'RESOLVED'" name="checkmark-circle-outline"></ion-icon>
+          {{ market.status }}
+        </span>
+      </div>
+      <h1 class="event-name">{{ market.event_name }}</h1>
+      <p class="market-type">{{ market.market_type }}</p>
+      <div class="multiplier">
+        {{ market.multiplier }}<span>x</span>
+      </div>
+    </div>
+
+    <!-- PREDICTION FORM -->
+    <div class="form-card">
+
+      <h2 class="form-title">Place Your Prediction</h2>
+
+      <ion-text color="danger" *ngIf="errorMessage">
+        <p class="form-msg error">{{ errorMessage }}</p>
+      </ion-text>
+
+      <ion-text color="success" *ngIf="successMessage">
+        <p class="form-msg success">{{ successMessage }}</p>
+      </ion-text>
+
+      <ion-item lines="none" class="input-item" *ngIf="options.length > 0">
+        <ion-select
+          label="Select Driver"
+          labelPlacement="floating"
+          interface="popover"
+          [(ngModel)]="selection">
+          <ion-select-option *ngFor="let o of options" [value]="o.value">
+            {{ o.label }} ({{ o.value }})
+          </ion-select-option>
+        </ion-select>
+      </ion-item>
+
+      <ion-item lines="none" class="input-item" *ngIf="options.length === 0">
+        <ion-input
+          label="Selection (e.g., VER)"
+          labelPlacement="floating"
+          [(ngModel)]="selection"
+          (keyup.enter)="submit()"
+        ></ion-input>
+      </ion-item>
+
+      <ion-item lines="none" class="input-item">
+        <ion-input
+          type="number"
+          min="1"
+          label="Stake"
+          labelPlacement="floating"
+          [(ngModel)]="stake"
+          (keyup.enter)="submit()"
+        ></ion-input>
+      </ion-item>
+
+      <div class="payout-display">
+        <span class="payout-label">Potential Payout</span>
+        <span class="payout-value">{{ potentialPayout }}</span>
+      </div>
+
+      <ion-button expand="block" class="submit-btn" (click)="submit()" [disabled]="loading || successMessage.length > 0">
+        {{ loading ? 'Submitting...' : 'Submit Prediction' }}
+      </ion-button>
+
+    </div>
+
   </div>
-
-  <ion-item *ngIf="options.length > 0">
-    <ion-select
-      label="Select Driver"
-      labelPlacement="floating"
-      interface="popover"
-      [(ngModel)]="selection">
-      <ion-select-option *ngFor="let o of options" [value]="o.value">
-        {{ o.label }} ({{ o.value }})
-      </ion-select-option>
-    </ion-select>
-  </ion-item>
-
-  <ion-item *ngIf="options.length === 0">
-    <ion-input
-      label="Selection (e.g., VER)"
-      labelPlacement="floating"
-      [(ngModel)]="selection"
-    ></ion-input>
-  </ion-item>
-
-  <ion-item>
-    <ion-input
-      type="number"
-      label="Stake"
-      labelPlacement="floating"
-      [(ngModel)]="stake"
-    ></ion-input>
-  </ion-item>
-
-  <ion-button expand="block" (click)="submit()" [disabled]="loading">
-    {{ loading ? 'Submitting...' : 'Submit' }}
-  </ion-button>
 
 </ion-content>
