@@ -4,36 +4,46 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { Api } from '../../services/api';
+import { addIcons } from 'ionicons';
+import { eye, eyeOff, shieldCheckmarkOutline } from 'ionicons/icons';
 
 @Component({
   selector: 'app-admin-login',
   templateUrl: './admin-login.page.html',
+  styleUrls: ['./admin-login.page.scss'],
   standalone: true,
   imports: [IonicModule, CommonModule, FormsModule],
 })
 export class AdminLoginPage {
 
   adminKey = '';
+  errorMessage = '';
+  loading = false;
+  showKey = false;
 
-  constructor(private api: Api, private router: Router) {}
+  constructor(private api: Api, private router: Router) {
+    addIcons({ eye, eyeOff, shieldCheckmarkOutline });
+  }
 
   login() {
+    this.errorMessage = '';
     if (!this.adminKey.trim()) {
-      alert('Enter the admin key');
+      this.errorMessage = 'Enter the admin key';
       return;
     }
 
-    // Verify the key by calling auto-lock (harmless — it only locks what's past cutoff)
+    this.loading = true;
     this.api.setAdminKey(this.adminKey.trim());
 
     this.api.adminAutoLock().subscribe({
       next: () => {
-        alert('Admin access granted');
+        this.loading = false;
         this.router.navigateByUrl('/admin');
       },
       error: () => {
+        this.loading = false;
         this.api.clearAdminKey();
-        alert('Invalid admin key');
+        this.errorMessage = 'Invalid admin key';
       }
     });
   }

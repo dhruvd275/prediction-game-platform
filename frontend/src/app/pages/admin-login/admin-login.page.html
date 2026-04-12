@@ -1,22 +1,36 @@
-<ion-header>
-  <ion-toolbar>
-    <ion-title>Admin Login</ion-title>
-  </ion-toolbar>
-</ion-header>
+<ion-content [fullscreen]="true" class="admin-login-content">
+  <div class="wrapper">
+    <div class="brand">
+      <div class="shield-icon">
+        <ion-icon name="shield-checkmark-outline"></ion-icon>
+      </div>
+      <h1 class="brand-name">ADMIN</h1>
+      <p class="tagline">BoldTake Control Panel</p>
+    </div>
 
-<ion-content class="ion-padding">
+    <div class="card">
+      <h2 class="card-title">Sign In</h2>
 
-  <ion-item>
-    <ion-input
-      type="password"
-      label="Admin Key"
-      labelPlacement="floating"
-      [(ngModel)]="adminKey">
-    </ion-input>
-  </ion-item>
+      <ion-text color="danger" *ngIf="errorMessage">
+        <p class="error-msg">{{ errorMessage }}</p>
+      </ion-text>
 
-  <ion-button expand="block" (click)="login()">
-    Enter
-  </ion-button>
+      <ion-item lines="none" class="input-item">
+        <ion-input
+          [type]="showKey ? 'text' : 'password'"
+          label="Admin Key"
+          labelPlacement="floating"
+          [(ngModel)]="adminKey"
+          (keyup.enter)="login()">
+        </ion-input>
+        <ion-button fill="clear" slot="end" (click)="showKey = !showKey">
+          <ion-icon [name]="showKey ? 'eye-off' : 'eye'"></ion-icon>
+        </ion-button>
+      </ion-item>
 
+      <ion-button expand="block" class="login-btn" (click)="login()" [disabled]="loading">
+        {{ loading ? 'Verifying...' : 'Enter' }}
+      </ion-button>
+    </div>
+  </div>
 </ion-content>

@@ -1,0 +1,100 @@
+.admin-login-content {
+  --background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%);
+}
+
+.wrapper {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.brand {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.shield-icon {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 16px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #8B5CF6, #3B82F6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 10px 30px rgba(139, 92, 246, 0.4);
+
+  ion-icon {
+    font-size: 40px;
+    color: #fff;
+  }
+}
+
+.brand-name {
+  font-family: 'Anton', sans-serif !important;
+  font-size: 48px;
+  letter-spacing: 4px;
+  color: #F1F5F9;
+  margin: 0;
+  text-transform: uppercase;
+}
+
+.tagline {
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  color: #94A3B8;
+  margin: 4px 0 0;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.card {
+  width: 100%;
+  max-width: 380px;
+  background: #1E293B;
+  border-radius: 20px;
+  padding: 32px 24px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+  border: 1px solid #334155;
+}
+
+.card-title {
+  font-family: 'Anton', sans-serif !important;
+  font-size: 24px;
+  text-align: center;
+  margin: 0 0 24px;
+  letter-spacing: 1px;
+  color: #F1F5F9;
+}
+
+.error-msg {
+  text-align: center;
+  font-size: 14px;
+  margin: 0 0 16px;
+  padding: 10px;
+  border-radius: 8px;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.input-item {
+  --background: #0F172A;
+  --border-radius: 12px;
+  margin-bottom: 16px;
+  border-radius: 12px;
+  border: 1px solid #334155;
+}
+
+.login-btn {
+  --background: linear-gradient(135deg, #8B5CF6, #3B82F6);
+  --border-radius: 12px;
+  --box-shadow: 0 4px 14px rgba(139, 92, 246, 0.4);
+  font-family: 'Anton', sans-serif;
+  font-size: 16px;
+  letter-spacing: 1.5px;
+  height: 50px;
+  margin-top: 8px;
+}
