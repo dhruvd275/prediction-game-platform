@@ -318,30 +318,57 @@ app.post("/admin/events/:id/markets", async (req, res) => {
     }
     const sport = eventResult.rows[0].sport;
 
-    const f1Drivers = [
-      { value: 'VER', label: 'Max Verstappen' },
-      { value: 'HAD', label: 'Isack Hadjar' },
-      { value: 'NOR', label: 'Lando Norris' },
-      { value: 'PIA', label: 'Oscar Piastri' },
-      { value: 'LEC', label: 'Charles Leclerc' },
-      { value: 'HAM', label: 'Lewis Hamilton' },
-      { value: 'RUS', label: 'George Russell' },
-      { value: 'ANT', label: 'Kimi Antonelli' },
-      { value: 'ALO', label: 'Fernando Alonso' },
-      { value: 'STR', label: 'Lance Stroll' },
-      { value: 'ALB', label: 'Alexander Albon' },
-      { value: 'SAI', label: 'Carlos Sainz' },
-      { value: 'GAS', label: 'Pierre Gasly' },
-      { value: 'COL', label: 'Franco Colapinto' },
-      { value: 'BEA', label: 'Oliver Bearman' },
-      { value: 'BOR', label: 'Gabriel Bortoleto' },
-      { value: 'HUL', label: 'Nico Hulkenberg' },
-      { value: 'DRU', label: 'Jack Doohan' },
-      { value: 'LAW', label: 'Liam Lawson' },
-      { value: 'LIN', label: 'Arvid Lindblad' },
-      { value: 'BOT', label: 'Valtteri Bottas' },
-      { value: 'PER', label: 'Sergio Perez' },
-    ];
+    const optionsBySport = {
+      F1: [
+        { value: 'VER', label: 'Max Verstappen' },
+        { value: 'HAD', label: 'Isack Hadjar' },
+        { value: 'NOR', label: 'Lando Norris' },
+        { value: 'PIA', label: 'Oscar Piastri' },
+        { value: 'LEC', label: 'Charles Leclerc' },
+        { value: 'HAM', label: 'Lewis Hamilton' },
+        { value: 'RUS', label: 'George Russell' },
+        { value: 'ANT', label: 'Kimi Antonelli' },
+        { value: 'ALO', label: 'Fernando Alonso' },
+        { value: 'STR', label: 'Lance Stroll' },
+        { value: 'ALB', label: 'Alexander Albon' },
+        { value: 'SAI', label: 'Carlos Sainz' },
+        { value: 'GAS', label: 'Pierre Gasly' },
+        { value: 'COL', label: 'Franco Colapinto' },
+        { value: 'BEA', label: 'Oliver Bearman' },
+        { value: 'BOR', label: 'Gabriel Bortoleto' },
+        { value: 'HUL', label: 'Nico Hulkenberg' },
+        { value: 'DRU', label: 'Jack Doohan' },
+        { value: 'LAW', label: 'Liam Lawson' },
+        { value: 'LIN', label: 'Arvid Lindblad' },
+        { value: 'BOT', label: 'Valtteri Bottas' },
+        { value: 'PER', label: 'Sergio Perez' },
+      ],
+      CRICKET: [
+        { value: 'CSK', label: 'Chennai Super Kings' },
+        { value: 'MI', label: 'Mumbai Indians' },
+        { value: 'RCB', label: 'Royal Challengers Bengaluru' },
+        { value: 'KKR', label: 'Kolkata Knight Riders' },
+        { value: 'DC', label: 'Delhi Capitals' },
+        { value: 'PBKS', label: 'Punjab Kings' },
+        { value: 'RR', label: 'Rajasthan Royals' },
+        { value: 'SRH', label: 'Sunrisers Hyderabad' },
+        { value: 'GT', label: 'Gujarat Titans' },
+        { value: 'LSG', label: 'Lucknow Super Giants' },
+      ],
+      FOOTBALL: [
+        { value: 'ARS', label: 'Arsenal' },
+        { value: 'AVL', label: 'Aston Villa' },
+        { value: 'CHE', label: 'Chelsea' },
+        { value: 'LIV', label: 'Liverpool' },
+        { value: 'MCI', label: 'Manchester City' },
+        { value: 'MUN', label: 'Manchester United' },
+        { value: 'NEW', label: 'Newcastle' },
+        { value: 'TOT', label: 'Tottenham' },
+      ],
+    };
+
+    const sportKey = sport.toUpperCase();
+    const optionsToSeed = optionsBySport[sportKey] || [];
 
     const created = [];
 
@@ -358,14 +385,12 @@ app.post("/admin/events/:id/markets", async (req, res) => {
       const newMarket = result.rows[0];
       created.push(newMarket);
 
-      // Auto-assign driver options for F1 events
-      if (sport.toUpperCase() === 'F1') {
-        for (const driver of f1Drivers) {
-          await pool.query(
-            "INSERT INTO market_options (market_id, value, label) VALUES ($1, $2, $3)",
-            [newMarket.id, driver.value, driver.label]
-          );
-        }
+      // Auto-seed options for supported sports
+      for (const option of optionsToSeed) {
+        await pool.query(
+          "INSERT INTO market_options (market_id, value, label) VALUES ($1, $2, $3)",
+          [newMarket.id, option.value, option.label]
+        );
       }
     }
 
@@ -661,11 +686,6 @@ app.post("/markets/:id/resolve", async (req, res) => {
       [result, marketId]
     );
 
-    await client.query(
-      "INSERT INTO credit_log (user_id, amount, type, description) VALUES ($1, $2, $3, $4)",
-      [prediction.user_id, payout, 'PAYOUT', `Won on market ${marketId}`]
-    );
-
     const predictions = await client.query(
       "SELECT id, user_id, selection, stake FROM predictions WHERE market_id=$1 FOR UPDATE",
       [marketId]
@@ -681,6 +701,11 @@ app.post("/markets/:id/resolve", async (req, res) => {
         await client.query(
           "UPDATE users SET credits = credits + $1 WHERE id=$2",
           [payout, prediction.user_id]
+        );
+
+        await client.query(
+          "INSERT INTO credit_log (user_id, amount, type, description) VALUES ($1, $2, $3, $4)",
+          [prediction.user_id, payout, 'PAYOUT', `Won on market ${marketId}`]
         );
 
         await client.query(

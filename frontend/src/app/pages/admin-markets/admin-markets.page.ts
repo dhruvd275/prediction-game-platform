@@ -1,9 +1,11 @@
-import { Component, OnInit } from '@angular/core';
-import { IonicModule } from '@ionic/angular';
+import { Component } from '@angular/core';
+import { IonicModule, ViewWillEnter } from '@ionic/angular';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { Api } from '../../services/api';
+import { addIcons } from 'ionicons';
+import { logOutOutline, arrowBackOutline, lockClosedOutline, flashOutline, checkmarkCircleOutline, settingsOutline, chevronDownOutline, chevronUpOutline } from 'ionicons/icons';
 
 @Component({
   selector: 'app-admin-markets',
@@ -12,14 +14,18 @@ import { Api } from '../../services/api';
   standalone: true,
   imports: [IonicModule, CommonModule, FormsModule, RouterModule],
 })
-export class AdminMarketsPage implements OnInit {
+export class AdminMarketsPage implements ViewWillEnter {
 
-  markets: any[] = [];
+  eventGroups: any[] = [];
   loading = true;
+  errorMessage = '';
+  successMessage = '';
 
-  constructor(private api: Api, private router: Router) {}
+  constructor(private api: Api, private router: Router) {
+    addIcons({ logOutOutline, arrowBackOutline, lockClosedOutline, flashOutline, checkmarkCircleOutline, settingsOutline, chevronDownOutline, chevronUpOutline });
+  }
 
-  ngOnInit() {
+  ionViewWillEnter() {
     const key = this.api.getAdminKey();
     if (!key) {
       this.router.navigateByUrl('/admin-login');
@@ -32,45 +38,87 @@ export class AdminMarketsPage implements OnInit {
     this.loading = true;
     this.api.adminGetMarkets().subscribe({
       next: (res: any) => {
-        this.markets = (res.markets || []).map((m: any) => ({
+        const markets = (res.markets || []).map((m: any) => ({
           ...m,
           resolveResult: '',
+          options: [],
         }));
+
+        // Group by event
+        const groupsMap: { [key: number]: any } = {};
+        markets.forEach((m: any) => {
+          if (!groupsMap[m.event_id]) {
+            groupsMap[m.event_id] = {
+              event_id: m.event_id,
+              event_name: m.event_name,
+              sport: m.sport,
+              markets: [],
+              expanded: false,
+              openCount: 0,
+              lockedCount: 0,
+              resolvedCount: 0,
+            };
+          }
+          groupsMap[m.event_id].markets.push(m);
+          if (m.status === 'OPEN') groupsMap[m.event_id].openCount++;
+          if (m.status === 'LOCKED') groupsMap[m.event_id].lockedCount++;
+          if (m.status === 'RESOLVED') groupsMap[m.event_id].resolvedCount++;
+        });
+
+        this.eventGroups = Object.values(groupsMap);
         this.loading = false;
+
+        // Fetch driver options for LOCKED markets
+        markets.forEach((m: any) => {
+          if (m.status === 'LOCKED') {
+            this.api.getMarketOptions(m.market_id).subscribe({
+              next: (opt: any) => { m.options = opt.options || []; },
+              error: () => { m.options = []; }
+            });
+          }
+        });
       },
       error: () => {
         this.loading = false;
-        alert('Failed to load markets');
+        this.errorMessage = 'Failed to load markets';
       }
     });
   }
 
+  toggleGroup(group: any) {
+    group.expanded = !group.expanded;
+  }
+
   autoLock() {
+    this.errorMessage = '';
+    this.successMessage = '';
     this.api.adminAutoLock().subscribe({
       next: (res: any) => {
-        alert(`Locked ${res.locked_count} market(s)`);
+        this.successMessage = `Locked ${res.locked_count} market(s)`;
         this.loadMarkets();
       },
-      error: () => {
-        alert('Failed to auto-lock markets');
-      }
+      error: () => { this.errorMessage = 'Failed to auto-lock'; }
     });
   }
 
   resolve(m: any) {
-    if (!m.resolveResult.trim()) {
-      alert('Enter a result (e.g. VER, HAM)');
+    this.errorMessage = '';
+    this.successMessage = '';
+    if (!m.resolveResult) {
+      this.errorMessage = 'Select a result';
       return;
     }
-
-    this.api.adminResolveMarket(m.market_id, m.resolveResult.trim().toUpperCase()).subscribe({
+    this.api.adminResolveMarket(m.market_id, m.resolveResult).subscribe({
       next: (res: any) => {
-        alert(`Resolved! Won: ${res.won}, Lost: ${res.lost}`);
+        this.successMessage = `Resolved! Won: ${res.won}, Lost: ${res.lost}`;
         this.loadMarkets();
       },
       error: (err) => {
-        alert(err?.error?.message || 'Failed to resolve market');
+        this.errorMessage = err?.error?.message || 'Failed to resolve';
       }
     });
   }
+
+  goAdmin() { this.router.navigateByUrl('/admin'); }
+  logout() { this.api.clearAdminKey(); this.router.navigateByUrl('/admin-login'); }
 }

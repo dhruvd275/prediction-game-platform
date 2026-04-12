@@ -1,80 +1,93 @@
-<ion-header>
-  <ion-toolbar>
-    <ion-buttons slot="start">
-      <ion-back-button defaultHref="/admin"></ion-back-button>
-    </ion-buttons>
-    <ion-title>Create Event</ion-title>
-  </ion-toolbar>
-</ion-header>
+<ion-content [fullscreen]="true" class="create-event-content">
 
-<ion-content class="ion-padding">
+  <nav class="top-nav">
+    <div class="nav-brand">
+      <div class="logo-mini"><ion-icon name="settings-outline"></ion-icon></div>
+      <span class="nav-name">ADMIN</span>
+    </div>
+    <button class="icon-btn" (click)="logout()"><ion-icon name="log-out-outline"></ion-icon></button>
+  </nav>
 
-  <h2>Event Details</h2>
+  <div class="body">
 
-  <ion-item>
-    <ion-input
-      label="Sport (e.g. F1)"
-      labelPlacement="floating"
-      [(ngModel)]="sport">
-    </ion-input>
-  </ion-item>
+    <a class="back-link" (click)="goAdmin()">
+      <ion-icon name="arrow-back-outline"></ion-icon>
+      Back to Dashboard
+    </a>
 
-  <ion-item>
-    <ion-input
-      label="Event Name"
-      labelPlacement="floating"
-      [(ngModel)]="name">
-    </ion-input>
-  </ion-item>
+    <div class="page-header">
+      <h1 class="page-title">Create Event</h1>
+      <p class="page-subtitle">Add a new event with markets</p>
+    </div>
 
-  <ion-item>
-    <ion-input
-      type="datetime-local"
-      label="Start Time"
-      labelPlacement="floating"
-      [(ngModel)]="startsAt">
-    </ion-input>
-  </ion-item>
+    <ion-text color="danger" *ngIf="errorMessage"><p class="msg error">{{ errorMessage }}</p></ion-text>
+    <ion-text color="success" *ngIf="successMessage"><p class="msg success">{{ successMessage }}</p></ion-text>
 
-  <h2>Markets</h2>
+    <div class="form-card">
+      <h2 class="card-title">Event Details</h2>
 
-  <div *ngFor="let m of markets; let i = index">
-    <ion-item-group>
-      <ion-item>
-        <ion-input
-          label="Type (e.g. race_p1)"
+      <ion-item lines="none" class="input-item">
+        <ion-select
+          label="Sport"
           labelPlacement="floating"
-          [(ngModel)]="m.type">
-        </ion-input>
+          interface="popover"
+          [(ngModel)]="sport"
+          (ionChange)="onSportChange()">
+          <ion-select-option *ngFor="let s of sportOptions" [value]="s.value">
+            {{ s.label }}
+          </ion-select-option>
+        </ion-select>
       </ion-item>
-      <ion-item>
-        <ion-input
-          type="number"
-          label="Multiplier (e.g. 3.00)"
-          labelPlacement="floating"
-          [(ngModel)]="m.multiplier">
-        </ion-input>
+
+      <ion-item lines="none" class="input-item">
+        <ion-input label="Event Name" labelPlacement="floating" [(ngModel)]="name"></ion-input>
       </ion-item>
-      <ion-item>
-        <ion-input
-          type="datetime-local"
-          label="Cutoff Time"
-          labelPlacement="floating"
-          [(ngModel)]="m.cutoffAt">
-        </ion-input>
+
+      <ion-item lines="none" class="input-item">
+        <ion-input type="datetime-local" label="Start Time" labelPlacement="floating" [(ngModel)]="startsAt"></ion-input>
       </ion-item>
-      <ion-button size="small" color="danger" (click)="removeMarket(i)">
-        Remove Market
-      </ion-button>
-    </ion-item-group>
+    </div>
+
+    <div class="form-card">
+      <h2 class="card-title">Markets</h2>
+
+      <div class="market-row" *ngFor="let m of markets; let i = index">
+        <div class="market-row-header">
+          <span>Market {{ i + 1 }}</span>
+          <button class="remove-btn" (click)="removeMarket(i)">
+            <ion-icon name="trash-outline"></ion-icon>
+          </button>
+        </div>
+
+        <ion-item lines="none" class="input-item">
+          <ion-select
+            label="Market Type"
+            labelPlacement="floating"
+            interface="popover"
+            [(ngModel)]="m.type">
+            <ion-select-option *ngFor="let t of availableMarketTypes" [value]="t.value">
+              {{ t.label }}
+            </ion-select-option>
+          </ion-select>
+        </ion-item>
+
+        <ion-item lines="none" class="input-item">
+          <ion-input type="number" label="Multiplier (e.g. 3.00)" labelPlacement="floating" [(ngModel)]="m.multiplier"></ion-input>
+        </ion-item>
+        <ion-item lines="none" class="input-item">
+          <ion-input type="datetime-local" label="Cutoff Time" labelPlacement="floating" [(ngModel)]="m.cutoffAt"></ion-input>
+        </ion-item>
+      </div>
+
+      <button class="add-market-btn" (click)="addMarket()">
+        <ion-icon name="add-outline"></ion-icon>
+        Add Market
+      </button>
+    </div>
+
+    <button class="submit-btn" (click)="submit()" [disabled]="loading">
+      {{ loading ? 'Creating...' : 'Create Event' }}
+    </button>
+
   </div>
-
-  <ion-button expand="block" fill="outline" (click)="addMarket()">
-    + Add Market
-  </ion-button>
-
-  <ion-button expand="block" (click)="submit()" [disabled]="loading">
-    {{ loading ? 'Creating...' : 'Create Event' }}
-  </ion-button>
-
 </ion-content>

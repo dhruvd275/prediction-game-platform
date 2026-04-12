@@ -1,47 +1,91 @@
-<ion-header>
-  <ion-toolbar>
-    <ion-buttons slot="start">
-      <ion-back-button defaultHref="/admin"></ion-back-button>
-    </ion-buttons>
-    <ion-title>Manage Markets</ion-title>
-  </ion-toolbar>
-</ion-header>
+<ion-content [fullscreen]="true" class="admin-markets-content">
 
-<ion-content class="ion-padding">
+  <nav class="top-nav">
+    <div class="nav-brand">
+      <div class="logo-mini"><ion-icon name="settings-outline"></ion-icon></div>
+      <span class="nav-name">ADMIN</span>
+    </div>
+    <button class="icon-btn" (click)="logout()"><ion-icon name="log-out-outline"></ion-icon></button>
+  </nav>
 
-  <ion-button expand="block" color="warning" (click)="autoLock()">
-    Auto-Lock Past Cutoff
-  </ion-button>
+  <div class="body">
 
-  <ion-text *ngIf="loading">Loading markets...</ion-text>
+    <a class="back-link" (click)="goAdmin()">
+      <ion-icon name="arrow-back-outline"></ion-icon>
+      Back to Dashboard
+    </a>
 
-  <ion-list *ngIf="!loading">
-    <ion-item *ngFor="let m of markets">
-      <ion-label>
-        <h2>{{ m.event_name }} — {{ m.market_type }}</h2>
-        <p>Multiplier: {{ m.multiplier }} • Status: {{ m.status }}</p>
-        <p>Cutoff: {{ m.cutoff_at | date:'MMM d, y – h:mm a' }}</p>
-        <p *ngIf="m.result">Result: {{ m.result }}</p>
+    <div class="page-header">
+      <h1 class="page-title">Manage Markets</h1>
+      <p class="page-subtitle">Lock and resolve markets</p>
+    </div>
 
-        <div *ngIf="m.status === 'LOCKED'">
-          <ion-item>
-            <ion-input
-              label="Result"
-              labelPlacement="floating"
-              [(ngModel)]="m.resolveResult"
-            ></ion-input>
-          </ion-item>
-          <ion-button size="small" (click)="resolve(m)">
-            Resolve
-          </ion-button>
+    <button class="auto-lock-btn" (click)="autoLock()">
+      <ion-icon name="lock-closed-outline"></ion-icon>
+      Auto-Lock Past Cutoff
+    </button>
+
+    <ion-text color="danger" *ngIf="errorMessage"><p class="msg error">{{ errorMessage }}</p></ion-text>
+    <ion-text color="success" *ngIf="successMessage"><p class="msg success">{{ successMessage }}</p></ion-text>
+
+    <div class="event-groups" *ngIf="!loading">
+      <div class="event-group" *ngFor="let group of eventGroups">
+
+        <button class="event-header" (click)="toggleGroup(group)">
+          <div class="event-info">
+            <span class="sport-badge">{{ group.sport }}</span>
+            <h2>{{ group.event_name }}</h2>
+          </div>
+          <div class="event-counts">
+            <span class="count-pill open" *ngIf="group.openCount > 0">{{ group.openCount }} Open</span>
+            <span class="count-pill locked" *ngIf="group.lockedCount > 0">{{ group.lockedCount }} Locked</span>
+            <span class="count-pill resolved" *ngIf="group.resolvedCount > 0">{{ group.resolvedCount }} Resolved</span>
+            <ion-icon [name]="group.expanded ? 'chevron-up-outline' : 'chevron-down-outline'"></ion-icon>
+          </div>
+        </button>
+
+        <div class="markets-list" *ngIf="group.expanded">
+          <div class="market-card" *ngFor="let m of group.markets"
+               [class.open]="m.status === 'OPEN'"
+               [class.locked]="m.status === 'LOCKED'"
+               [class.resolved]="m.status === 'RESOLVED'">
+
+            <div class="card-top">
+              <div>
+                <p class="market-type">{{ m.market_type }} • {{ m.multiplier }}x</p>
+                <p class="cutoff">Cutoff: {{ m.cutoff_at | date:'MMM d, y – h:mm a' }}</p>
+              </div>
+              <span class="status-pill">
+                <ion-icon *ngIf="m.status === 'OPEN'" name="flash-outline"></ion-icon>
+                <ion-icon *ngIf="m.status === 'LOCKED'" name="lock-closed-outline"></ion-icon>
+                <ion-icon *ngIf="m.status === 'RESOLVED'" name="checkmark-circle-outline"></ion-icon>
+                {{ m.status }}
+              </span>
+            </div>
+
+            <p class="result-line" *ngIf="m.result">Result: <strong>{{ m.result }}</strong></p>
+
+            <div class="resolve-form" *ngIf="m.status === 'LOCKED'">
+              <ion-item lines="none" class="input-item" *ngIf="m.options.length > 0">
+                <ion-select label="Result" labelPlacement="floating" interface="popover" [(ngModel)]="m.resolveResult">
+                  <ion-select-option *ngFor="let o of m.options" [value]="o.value">
+                    {{ o.label }} ({{ o.value }})
+                  </ion-select-option>
+                </ion-select>
+              </ion-item>
+              <ion-item lines="none" class="input-item" *ngIf="m.options.length === 0">
+                <ion-input label="Result" labelPlacement="floating" [(ngModel)]="m.resolveResult"></ion-input>
+              </ion-item>
+              <button class="resolve-btn" (click)="resolve(m)">Resolve Market</button>
+            </div>
+          </div>
         </div>
 
-      </ion-label>
-    </ion-item>
-  </ion-list>
+      </div>
+    </div>
 
-  <ion-text *ngIf="!loading && markets.length === 0">
-    No markets found.
-  </ion-text>
-
+    <div class="empty-state" *ngIf="!loading && eventGroups.length === 0">
+      <p>No markets found.</p>
+    </div>
+  </div>
 </ion-content>

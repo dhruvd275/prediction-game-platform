@@ -1,8 +1,10 @@
-import { Component, OnInit } from '@angular/core';
-import { IonicModule } from '@ionic/angular';
+import { Component } from '@angular/core';
+import { IonicModule, ViewWillEnter } from '@ionic/angular';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { Api } from '../../services/api';
+import { addIcons } from 'ionicons';
+import { logOutOutline, peopleOutline, calendarOutline, analyticsOutline, lockClosedOutline, flashOutline, checkmarkCircleOutline, addCircleOutline, settingsOutline } from 'ionicons/icons';
 
 @Component({
   selector: 'app-admin',
@@ -11,14 +13,16 @@ import { Api } from '../../services/api';
   standalone: true,
   imports: [IonicModule, CommonModule, RouterModule],
 })
-export class AdminPage implements OnInit {
+export class AdminPage implements ViewWillEnter {
 
   stats: any = null;
   loading = true;
 
-  constructor(private api: Api, private router: Router) {}
+  constructor(private api: Api, private router: Router) {
+    addIcons({ logOutOutline, peopleOutline, calendarOutline, analyticsOutline, lockClosedOutline, flashOutline, checkmarkCircleOutline, addCircleOutline, settingsOutline });
+  }
 
-  ngOnInit() {
+  ionViewWillEnter() {
     const key = this.api.getAdminKey();
     if (!key) {
       this.router.navigateByUrl('/admin-login');
@@ -42,13 +46,8 @@ export class AdminPage implements OnInit {
     });
   }
 
-  goMarkets() {
-    this.router.navigateByUrl('/admin-markets');
-  }
-
-  goCreateEvent() {
-    this.router.navigateByUrl('/admin-create-event');
-  }
+  goMarkets() { this.router.navigateByUrl('/admin-markets'); }
+  goCreateEvent() { this.router.navigateByUrl('/admin-create-event'); }
 
   logout() {
     this.api.clearAdminKey();

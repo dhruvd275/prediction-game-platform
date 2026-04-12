@@ -4,6 +4,8 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { Api } from '../../services/api';
+import { addIcons } from 'ionicons';
+import { logOutOutline, arrowBackOutline, settingsOutline, addOutline, trashOutline } from 'ionicons/icons';
 
 @Component({
   selector: 'app-admin-create-event',
@@ -14,81 +16,116 @@ import { Api } from '../../services/api';
 })
 export class AdminCreateEventPage {
 
-  sport = '';
+  sport = 'F1';
   name = '';
   startsAt = '';
-
   markets: any[] = [];
-
   loading = false;
+  errorMessage = '';
+  successMessage = '';
+
+  sportOptions = [
+    { value: 'F1', label: 'Formula 1' },
+    { value: 'CRICKET', label: 'Cricket' },
+    { value: 'FOOTBALL', label: 'Football' },
+  ];
+
+  marketTypesBySport: { [key: string]: { value: string; label: string }[] } = {
+    F1: [
+      { value: 'race_p1', label: 'Race P1 (Winner)' },
+      { value: 'race_p2', label: 'Race P2' },
+      { value: 'race_p3', label: 'Race P3' },
+      { value: 'pole', label: 'Pole Position' },
+      { value: 'sprint_p1', label: 'Sprint P1' },
+      { value: 'sprint_p2', label: 'Sprint P2' },
+      { value: 'sprint_p3', label: 'Sprint P3' },
+      { value: 'fastest_lap', label: 'Fastest Lap' },
+    ],
+    CRICKET: [
+      { value: 'match_winner', label: 'Match Winner' },
+      { value: 'top_batsman', label: 'Top Batsman' },
+      { value: 'top_bowler', label: 'Top Bowler' },
+      { value: 'toss_winner', label: 'Toss Winner' },
+      { value: 'man_of_the_match', label: 'Man of the Match' },
+    ],
+    FOOTBALL: [
+      { value: 'match_winner', label: 'Match Winner' },
+      { value: 'top_scorer', label: 'Top Scorer' },
+      { value: 'first_goal', label: 'First Goal Scorer' },
+      { value: 'clean_sheet', label: 'Clean Sheet' },
+    ],
+  };
 
   constructor(private api: Api, private router: Router) {
+    addIcons({ logOutOutline, arrowBackOutline, settingsOutline, addOutline, trashOutline });
     const key = this.api.getAdminKey();
-    if (!key) {
-      this.router.navigateByUrl('/admin-login');
-    }
+    if (!key) this.router.navigateByUrl('/admin-login');
+  }
+
+  get availableMarketTypes() {
+    return this.marketTypesBySport[this.sport] || [];
+  }
+
+  onSportChange() {
+    // Reset market types since they're sport-specific
+    this.markets.forEach(m => m.type = '');
   }
 
   addMarket() {
-    this.markets.push({
-      type: '',
-      multiplier: null,
-      cutoffAt: '',
-    });
+    this.markets.push({ type: '', multiplier: null, cutoffAt: '' });
   }
 
-  removeMarket(index: number) {
-    this.markets.splice(index, 1);
+  removeMarket(i: number) {
+    this.markets.splice(i, 1);
   }
 
   submit() {
-    if (!this.sport.trim() || !this.name.trim() || !this.startsAt) {
-      alert('Fill in sport, name and start time');
+    this.errorMessage = '';
+    this.successMessage = '';
+
+    if (!this.sport || !this.name.trim() || !this.startsAt) {
+      this.errorMessage = 'Fill in sport, name and start time';
       return;
     }
-
     if (this.markets.length === 0) {
-      alert('Add at least one market');
+      this.errorMessage = 'Add at least one market';
       return;
     }
-
     for (const m of this.markets) {
-      if (!m.type.trim() || !m.multiplier || !m.cutoffAt) {
-        alert('Fill in all market fields');
+      if (!m.type || !m.multiplier || !m.cutoffAt) {
+        this.errorMessage = 'Fill in all market fields';
         return;
       }
     }
 
     this.loading = true;
-
-    // Step 1: Create the event
-    this.api.adminCreateEvent(this.sport.trim(), this.name.trim(), this.startsAt).subscribe({
+    this.api.adminCreateEvent(this.sport, this.name.trim(), this.startsAt).subscribe({
       next: (res: any) => {
         const eventId = res.event.id;
-
-        // Step 2: Create markets for the event
-        const marketsPayload = this.markets.map(m => ({
-          type: m.type.trim(),
+        const payload = this.markets.map(m => ({
+          type: m.type,
           multiplier: m.multiplier,
           cutoff_at: m.cutoffAt,
         }));
-
-        this.api.adminCreateMarkets(eventId, marketsPayload).subscribe({
+        this.api.adminCreateMarkets(eventId, payload).subscribe({
           next: () => {
             this.loading = false;
-            alert('Event and markets created!');
-            this.router.navigateByUrl('/admin');
+            this.successMessage = 'Event and markets created!';
+            setTimeout(() => this.router.navigateByUrl('/admin'), 1500);
           },
           error: () => {
             this.loading = false;
-            alert('Event created but failed to add markets');
+            this.errorMessage = 'Event created but failed to add markets';
           }
         });
       },
       error: (err) => {
         this.loading = false;
-        alert(err?.error?.message || 'Failed to create event');
+        this.errorMessage = err?.error?.message || 'Failed to create event';
       }
     });
   }
+
+  goAdmin() { this.router.navigateByUrl('/admin'); }
+  logout() { this.api.clearAdminKey(); this.router.navigateByUrl('/admin-login'); }
 }

@@ -1,0 +1,138 @@
+.create-event-content {
+  --background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%);
+}
+
+.top-nav {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 32px;
+  background: rgba(15, 23, 42, 0.8);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid #334155;
+  position: sticky; top: 0; z-index: 100;
+}
+
+.nav-brand { display: flex; align-items: center; gap: 12px; }
+
+.logo-mini {
+  width: 36px; height: 36px; border-radius: 10px;
+  background: linear-gradient(135deg, #8B5CF6, #3B82F6);
+  display: flex; align-items: center; justify-content: center;
+  ion-icon { font-size: 20px; color: #fff; }
+}
+
+.nav-name {
+  font-family: 'Anton', sans-serif;
+  font-size: 22px; letter-spacing: 3px; color: #F1F5F9;
+}
+
+.icon-btn {
+  background: transparent; border: 1px solid #334155;
+  width: 40px; height: 40px; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  color: #94A3B8; cursor: pointer; transition: all 0.2s;
+  ion-icon { font-size: 20px; }
+  &:hover { border-color: #8B5CF6; color: #8B5CF6; }
+}
+
+.body {
+  max-width: 800px; margin: 0 auto; padding: 32px;
+}
+
+.back-link {
+  display: inline-flex; align-items: center; gap: 6px;
+  color: #94A3B8; font-family: 'Inter', sans-serif; font-size: 13px;
+  text-transform: uppercase; letter-spacing: 0.5px;
+  cursor: pointer; margin-bottom: 20px; transition: color 0.2s;
+  ion-icon { font-size: 16px; }
+  &:hover { color: #8B5CF6; }
+}
+
+.page-header { margin-bottom: 24px; }
+
+.page-title {
+  font-family: 'Anton', sans-serif !important;
+  font-size: 40px; color: #F1F5F9; margin: 0; letter-spacing: 2px;
+}
+
+.page-subtitle {
+  font-family: 'Inter', sans-serif; font-size: 14px; color: #94A3B8;
+  margin: 4px 0 0; text-transform: uppercase; letter-spacing: 1px;
+}
+
+.msg {
+  text-align: center; padding: 12px; border-radius: 8px;
+  margin-bottom: 16px; font-size: 14px;
+  &.error { background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); }
+  &.success { background: rgba(34, 197, 94, 0.1); border: 1px solid rgba(34, 197, 94, 0.3); }
+}
+
+.form-card {
+  background: #1E293B; border: 1px solid #334155;
+  border-radius: 16px; padding: 24px;
+  margin-bottom: 16px;
+}
+
+.card-title {
+  font-family: 'Anton', sans-serif !important;
+  font-size: 20px; color: #F1F5F9;
+  margin: 0 0 16px; letter-spacing: 1px;
+}
+
+.input-item {
+  --background: #0F172A; --border-radius: 10px;
+  margin-bottom: 12px; border-radius: 10px; border: 1px solid #334155;
+}
+
+.market-row {
+  background: #0F172A; border: 1px solid #334155;
+  border-radius: 12px; padding: 16px;
+  margin-bottom: 12px;
+}
+
+.market-row-header {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 12px;
+
+  span {
+    font-family: 'Anton', sans-serif;
+    font-size: 14px; color: #8B5CF6;
+    letter-spacing: 1px;
+  }
+}
+
+.remove-btn {
+  background: transparent; border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #EF4444; width: 32px; height: 32px; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: all 0.2s;
+  ion-icon { font-size: 16px; }
+  &:hover { background: rgba(239, 68, 68, 0.1); }
+}
+
+.add-market-btn {
+  width: 100%; background: transparent;
+  border: 2px dashed #334155; color: #94A3B8;
+  padding: 14px; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  cursor: pointer; transition: all 0.2s;
+  font-family: 'Anton', sans-serif; font-size: 14px; letter-spacing: 1px;
+  ion-icon { font-size: 18px; }
+  &:hover { border-color: #8B5CF6; color: #8B5CF6; }
+}
+
+.submit-btn {
+  width: 100%; background: linear-gradient(135deg, #8B5CF6, #3B82F6);
+  border: none; border-radius: 12px; padding: 16px;
+  font-family: 'Anton', sans-serif; font-size: 16px;
+  color: #fff; letter-spacing: 1.5px;
+  cursor: pointer; transition: all 0.2s;
+  box-shadow: 0 4px 14px rgba(139, 92, 246, 0.3);
+  &:hover:not(:disabled) { transform: translateY(-2px); }
+  &:disabled { opacity: 0.6; cursor: not-allowed; }
+}
+
+@media (max-width: 768px) {
+  .top-nav { padding: 12px 16px; }
+  .body { padding: 20px 16px; }
+  .page-title { font-size: 30px; }
+}

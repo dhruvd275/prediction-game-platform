@@ -1,56 +1,69 @@
-<ion-header>
-  <ion-toolbar>
-    <ion-title>Admin Dashboard</ion-title>
-  </ion-toolbar>
-</ion-header>
+<ion-content [fullscreen]="true" class="admin-content">
 
-<ion-content class="ion-padding">
+  <nav class="top-nav">
+    <div class="nav-brand">
+      <div class="logo-mini">
+        <ion-icon name="settings-outline"></ion-icon>
+      </div>
+      <span class="nav-name">ADMIN</span>
+    </div>
+    <button class="icon-btn" (click)="logout()" title="Logout">
+      <ion-icon name="log-out-outline"></ion-icon>
+    </button>
+  </nav>
 
-  <ion-text *ngIf="loading">Loading stats...</ion-text>
+  <div class="admin-body">
 
-  <div *ngIf="stats">
+    <div class="page-header">
+      <h1 class="page-title">Dashboard</h1>
+      <p class="page-subtitle">Platform overview</p>
+    </div>
 
-    <h2>Platform Stats</h2>
+    <div class="stats-grid" *ngIf="stats">
+      <div class="stat-card users">
+        <ion-icon name="people-outline"></ion-icon>
+        <p class="stat-label">Total Users</p>
+        <p class="stat-value">{{ stats.total_users }}</p>
+      </div>
+      <div class="stat-card events">
+        <ion-icon name="calendar-outline"></ion-icon>
+        <p class="stat-label">Total Events</p>
+        <p class="stat-value">{{ stats.total_events }}</p>
+      </div>
+      <div class="stat-card predictions">
+        <ion-icon name="analytics-outline"></ion-icon>
+        <p class="stat-label">Predictions</p>
+        <p class="stat-value">{{ stats.total_predictions }}</p>
+      </div>
+      <div class="stat-card open">
+        <ion-icon name="flash-outline"></ion-icon>
+        <p class="stat-label">Markets Open</p>
+        <p class="stat-value">{{ stats.markets_open }}</p>
+      </div>
+      <div class="stat-card locked">
+        <ion-icon name="lock-closed-outline"></ion-icon>
+        <p class="stat-label">Markets Locked</p>
+        <p class="stat-value">{{ stats.markets_locked }}</p>
+      </div>
+      <div class="stat-card resolved">
+        <ion-icon name="checkmark-circle-outline"></ion-icon>
+        <p class="stat-label">Markets Resolved</p>
+        <p class="stat-value">{{ stats.markets_resolved }}</p>
+      </div>
+    </div>
 
-    <ion-list>
-      <ion-item>
-        <ion-label>Total Users</ion-label>
-        <ion-note slot="end">{{ stats.total_users }}</ion-note>
-      </ion-item>
-      <ion-item>
-        <ion-label>Total Events</ion-label>
-        <ion-note slot="end">{{ stats.total_events }}</ion-note>
-      </ion-item>
-      <ion-item>
-        <ion-label>Total Predictions</ion-label>
-        <ion-note slot="end">{{ stats.total_predictions }}</ion-note>
-      </ion-item>
-      <ion-item>
-        <ion-label>Markets — Open</ion-label>
-        <ion-note slot="end">{{ stats.markets_open }}</ion-note>
-      </ion-item>
-      <ion-item>
-        <ion-label>Markets — Locked</ion-label>
-        <ion-note slot="end">{{ stats.markets_locked }}</ion-note>
-      </ion-item>
-      <ion-item>
-        <ion-label>Markets — Resolved</ion-label>
-        <ion-note slot="end">{{ stats.markets_resolved }}</ion-note>
-      </ion-item>
-    </ion-list>
-
-    <ion-button expand="block" (click)="goMarkets()">
-      Manage Markets
-    </ion-button>
-
-    <ion-button expand="block" (click)="goCreateEvent()">
-      Create Event
-    </ion-button>
-
-    <ion-button expand="block" color="danger" (click)="logout()">
-      Admin Logout
-    </ion-button>
+    <div class="actions-row">
+      <button class="action-card" (click)="goMarkets()">
+        <ion-icon name="settings-outline"></ion-icon>
+        <h3>Manage Markets</h3>
+        <p>Lock and resolve markets</p>
+      </button>
+      <button class="action-card" (click)="goCreateEvent()">
+        <ion-icon name="add-circle-outline"></ion-icon>
+        <h3>Create Event</h3>
+        <p>Add a new event with markets</p>
+      </button>
+    </div>
 
   </div>
-
 </ion-content>

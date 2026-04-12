@@ -1,0 +1,195 @@
+.admin-content {
+  --background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%);
+}
+
+.top-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 32px;
+  background: rgba(15, 23, 42, 0.8);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid #334155;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.nav-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.logo-mini {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #8B5CF6, #3B82F6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  ion-icon { font-size: 20px; color: #fff; }
+}
+
+.nav-name {
+  font-family: 'Anton', sans-serif;
+  font-size: 22px;
+  letter-spacing: 3px;
+  color: #F1F5F9;
+}
+
+.icon-btn {
+  background: transparent;
+  border: 1px solid #334155;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #94A3B8;
+  cursor: pointer;
+  transition: all 0.2s;
+  ion-icon { font-size: 20px; }
+  &:hover { border-color: #8B5CF6; color: #8B5CF6; }
+}
+
+.admin-body {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 32px;
+}
+
+.page-header {
+  margin-bottom: 32px;
+}
+
+.page-title {
+  font-family: 'Anton', sans-serif !important;
+  font-size: 48px;
+  color: #F1F5F9;
+  margin: 0;
+  letter-spacing: 2px;
+}
+
+.page-subtitle {
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  color: #94A3B8;
+  margin: 4px 0 0;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.stat-card {
+  background: #1E293B;
+  border: 1px solid #334155;
+  border-radius: 16px;
+  padding: 24px;
+  position: relative;
+  overflow: hidden;
+
+  ion-icon {
+    font-size: 32px;
+    color: #8B5CF6;
+    margin-bottom: 12px;
+  }
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+  }
+
+  &.users::before { background: #8B5CF6; }
+  &.events::before { background: #3B82F6; }
+  &.predictions::before { background: #8B5CF6; }
+  &.open::before { background: #22C55E; }
+  &.locked::before { background: #F59E0B; }
+  &.resolved::before { background: #64748B; }
+
+  &.open ion-icon { color: #22C55E; }
+  &.locked ion-icon { color: #F59E0B; }
+  &.resolved ion-icon { color: #64748B; }
+
+  .stat-label {
+    font-family: 'Inter', sans-serif;
+    font-size: 11px;
+    color: #94A3B8;
+    margin: 0 0 8px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .stat-value {
+    font-family: 'Anton', sans-serif;
+    font-size: 36px;
+    color: #F1F5F9;
+    margin: 0;
+    letter-spacing: 1px;
+  }
+}
+
+.actions-row {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.action-card {
+  background: #1E293B;
+  border: 1px solid #334155;
+  border-radius: 16px;
+  padding: 28px;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.2s;
+  color: #F1F5F9;
+
+  ion-icon {
+    font-size: 40px;
+    color: #8B5CF6;
+    margin-bottom: 12px;
+  }
+
+  h3 {
+    font-family: 'Anton', sans-serif !important;
+    font-size: 22px;
+    margin: 0 0 6px;
+    letter-spacing: 1px;
+  }
+
+  p {
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    color: #94A3B8;
+    margin: 0;
+  }
+
+  &:hover {
+    transform: translateY(-4px);
+    border-color: #8B5CF6;
+    box-shadow: 0 10px 30px rgba(139, 92, 246, 0.2);
+  }
+}
+
+@media (max-width: 1024px) {
+  .stats-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 768px) {
+  .top-nav { padding: 12px 16px; }
+  .admin-body { padding: 20px 16px; }
+  .page-title { font-size: 36px; }
+  .stats-grid { grid-template-columns: 1fr; }
+  .actions-row { grid-template-columns: 1fr; }
+}
