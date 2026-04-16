@@ -24,11 +24,39 @@ export class AdminCreateEventPage {
   errorMessage = '';
   successMessage = '';
 
+  team1 = '';
+  team2 = '';
+
   sportOptions = [
     { value: 'F1', label: 'Formula 1' },
     { value: 'CRICKET', label: 'Cricket' },
     { value: 'FOOTBALL', label: 'Football' },
   ];
+
+  teamsBySport: { [key: string]: { value: string; label: string }[] } = {
+    CRICKET: [
+      { value: 'CSK', label: 'Chennai Super Kings' },
+      { value: 'MI', label: 'Mumbai Indians' },
+      { value: 'RCB', label: 'Royal Challengers Bengaluru' },
+      { value: 'KKR', label: 'Kolkata Knight Riders' },
+      { value: 'DC', label: 'Delhi Capitals' },
+      { value: 'PBKS', label: 'Punjab Kings' },
+      { value: 'RR', label: 'Rajasthan Royals' },
+      { value: 'SRH', label: 'Sunrisers Hyderabad' },
+      { value: 'GT', label: 'Gujarat Titans' },
+      { value: 'LSG', label: 'Lucknow Super Giants' },
+    ],
+    FOOTBALL: [
+      { value: 'ARS', label: 'Arsenal' },
+      { value: 'AVL', label: 'Aston Villa' },
+      { value: 'CHE', label: 'Chelsea' },
+      { value: 'LIV', label: 'Liverpool' },
+      { value: 'MCI', label: 'Manchester City' },
+      { value: 'MUN', label: 'Manchester United' },
+      { value: 'NEW', label: 'Newcastle' },
+      { value: 'TOT', label: 'Tottenham' },
+    ],
+  };
 
   marketTypesBySport: { [key: string]: { value: string; label: string }[] } = {
     F1: [
@@ -43,16 +71,10 @@ export class AdminCreateEventPage {
     ],
     CRICKET: [
       { value: 'match_winner', label: 'Match Winner' },
-      { value: 'top_batsman', label: 'Top Batsman' },
-      { value: 'top_bowler', label: 'Top Bowler' },
       { value: 'toss_winner', label: 'Toss Winner' },
-      { value: 'man_of_the_match', label: 'Man of the Match' },
     ],
     FOOTBALL: [
       { value: 'match_winner', label: 'Match Winner' },
-      { value: 'top_scorer', label: 'Top Scorer' },
-      { value: 'first_goal', label: 'First Goal Scorer' },
-      { value: 'clean_sheet', label: 'Clean Sheet' },
     ],
   };
 
@@ -66,9 +88,26 @@ export class AdminCreateEventPage {
     return this.marketTypesBySport[this.sport] || [];
   }
 
+  get availableTeams() {
+    return this.teamsBySport[this.sport] || [];
+  }
+
+  get isTeamSport(): boolean {
+    return this.sport === 'CRICKET' || this.sport === 'FOOTBALL';
+  }
+
+  get team1Options() {
+    return this.availableTeams.filter(t => t.value !== this.team2);
+  }
+
+  get team2Options() {
+    return this.availableTeams.filter(t => t.value !== this.team1);
+  }
+
   onSportChange() {
-    // Reset market types since they're sport-specific
     this.markets.forEach(m => m.type = '');
+    this.team1 = '';
+    this.team2 = '';
   }
 
   addMarket() {
@@ -87,10 +126,22 @@ export class AdminCreateEventPage {
       this.errorMessage = 'Fill in sport, name and start time';
       return;
     }
+
+    if (this.isTeamSport && (!this.team1 || !this.team2)) {
+      this.errorMessage = 'Select both teams for this event';
+      return;
+    }
+
+    if (this.isTeamSport && this.team1 === this.team2) {
+      this.errorMessage = 'Team 1 and Team 2 must be different';
+      return;
+    }
+
     if (this.markets.length === 0) {
       this.errorMessage = 'Add at least one market';
       return;
     }
+
     for (const m of this.markets) {
       if (!m.type || !m.multiplier || !m.cutoffAt) {
         this.errorMessage = 'Fill in all market fields';
@@ -107,7 +158,7 @@ export class AdminCreateEventPage {
           multiplier: m.multiplier,
           cutoff_at: m.cutoffAt,
         }));
-        this.api.adminCreateMarkets(eventId, payload).subscribe({
+        this.api.adminCreateMarkets(eventId, payload, this.team1, this.team2).subscribe({
           next: () => {
             this.loading = false;
             this.successMessage = 'Event and markets created!';

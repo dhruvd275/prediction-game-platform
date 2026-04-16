@@ -46,6 +46,39 @@
       <ion-item lines="none" class="input-item">
         <ion-input type="datetime-local" label="Start Time" labelPlacement="floating" [(ngModel)]="startsAt"></ion-input>
       </ion-item>
+
+      <!-- TEAM PICKER — Cricket and Football only -->
+      <div class="team-picker" *ngIf="isTeamSport">
+        <p class="team-picker-label">Teams Playing</p>
+        <div class="team-row">
+          <ion-item lines="none" class="input-item team-item">
+            <ion-select
+              label="Team 1"
+              labelPlacement="floating"
+              interface="popover"
+              [(ngModel)]="team1">
+              <ion-select-option *ngFor="let t of team1Options" [value]="t.value">
+                {{ t.label }}
+              </ion-select-option>
+            </ion-select>
+          </ion-item>
+
+          <span class="vs-label">VS</span>
+
+          <ion-item lines="none" class="input-item team-item">
+            <ion-select
+              label="Team 2"
+              labelPlacement="floating"
+              interface="popover"
+              [(ngModel)]="team2">
+              <ion-select-option *ngFor="let t of team2Options" [value]="t.value">
+                {{ t.label }}
+              </ion-select-option>
+            </ion-select>
+          </ion-item>
+        </div>
+      </div>
+
     </div>
 
     <div class="form-card">

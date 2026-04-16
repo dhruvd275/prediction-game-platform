@@ -80,94 +80,6 @@
   &.success { background: rgba(34, 197, 94, 0.1); border: 1px solid rgba(34, 197, 94, 0.3); }
 }
 
-.markets-list {
-  display: flex; flex-direction: column; gap: 12px;
-}
-
-.market-card {
-  background: #1E293B; border: 1px solid #334155;
-  border-radius: 12px; padding: 20px 24px;
-  position: relative; overflow: hidden;
-
-  &::before {
-    content: ''; position: absolute; top: 0; left: 0;
-    width: 4px; height: 100%;
-  }
-  &.open::before { background: #22C55E; }
-  &.locked::before { background: #F59E0B; }
-  &.resolved::before { background: #64748B; }
-}
-
-.card-top {
-  display: flex; justify-content: space-between; align-items: flex-start;
-  margin-bottom: 10px; gap: 12px;
-}
-
-.event-name {
-  font-family: 'Inter', sans-serif; font-weight: 600;
-  color: #F1F5F9; margin: 0 0 4px; font-size: 15px;
-}
-
-.market-type {
-  font-family: 'Inter', sans-serif; font-size: 12px;
-  color: #94A3B8; margin: 0;
-  text-transform: uppercase; letter-spacing: 0.5px;
-}
-
-.status-pill {
-  display: inline-flex; align-items: center; gap: 4px;
-  font-family: 'Anton', sans-serif; font-size: 11px;
-  padding: 5px 10px; border-radius: 6px; letter-spacing: 1px;
-  ion-icon { font-size: 12px; }
-
-  .market-card.open & { background: rgba(34, 197, 94, 0.15); color: #22C55E; border: 1px solid rgba(34, 197, 94, 0.3); }
-  .market-card.locked & { background: rgba(245, 158, 11, 0.15); color: #F59E0B; border: 1px solid rgba(245, 158, 11, 0.3); }
-  .market-card.resolved & { background: rgba(100, 116, 139, 0.15); color: #94A3B8; border: 1px solid rgba(100, 116, 139, 0.3); }
-}
-
-.cutoff {
-  font-family: 'Inter', sans-serif; font-size: 12px;
-  color: #94A3B8; margin: 0;
-}
-
-.result-line {
-  font-family: 'Inter', sans-serif; font-size: 13px;
-  color: #94A3B8; margin: 8px 0 0;
-  strong { color: #22C55E; font-family: 'Anton', sans-serif; margin-left: 4px; }
-}
-
-.resolve-form {
-  margin-top: 16px; padding-top: 16px;
-  border-top: 1px solid #334155;
-}
-
-.input-item {
-  --background: #0F172A; --border-radius: 10px;
-  border-radius: 10px; border: 1px solid #334155;
-  margin-bottom: 12px;
-}
-
-.resolve-btn {
-  width: 100%; background: linear-gradient(135deg, #8B5CF6, #3B82F6);
-  border: none; border-radius: 10px; padding: 12px;
-  font-family: 'Anton', sans-serif; font-size: 14px;
-  color: #fff; letter-spacing: 1.5px;
-  cursor: pointer; transition: all 0.2s;
-  box-shadow: 0 4px 14px rgba(139, 92, 246, 0.3);
-  &:hover { transform: translateY(-2px); }
-}
-
-.empty-state {
-  text-align: center; padding: 60px 20px;
-  color: #64748B; font-size: 16px;
-}
-
-@media (max-width: 768px) {
-  .top-nav { padding: 12px 16px; }
-  .body { padding: 20px 16px; }
-  .page-title { font-size: 30px; }
-}
-
 .event-groups {
   display: flex;
   flex-direction: column;
@@ -193,7 +105,6 @@
   cursor: pointer;
   color: #F1F5F9;
   transition: background 0.2s;
-
   &:hover { background: rgba(139, 92, 246, 0.08); }
 }
 
@@ -227,7 +138,6 @@
   display: flex;
   align-items: center;
   gap: 8px;
-
   ion-icon { font-size: 20px; color: #94A3B8; }
 }
 
@@ -237,15 +147,202 @@
   padding: 4px 10px;
   border-radius: 6px;
   letter-spacing: 1px;
-
   &.open { background: rgba(34, 197, 94, 0.15); color: #22C55E; border: 1px solid rgba(34, 197, 94, 0.3); }
   &.locked { background: rgba(245, 158, 11, 0.15); color: #F59E0B; border: 1px solid rgba(245, 158, 11, 0.3); }
   &.resolved { background: rgba(100, 116, 139, 0.15); color: #94A3B8; border: 1px solid rgba(100, 116, 139, 0.3); }
 }
 
-.event-group .markets-list {
-  padding: 0 16px 16px;
+.markets-list {
+  display: flex;
+  flex-direction: column;
   gap: 10px;
+  padding: 0 16px 16px;
   border-top: 1px solid #334155;
   padding-top: 16px;
+}
+
+.market-card {
+  background: #0F172A; border: 1px solid #334155;
+  border-radius: 12px; padding: 20px 24px;
+  position: relative; overflow: hidden;
+
+  &::before {
+    content: ''; position: absolute; top: 0; left: 0;
+    width: 4px; height: 100%;
+  }
+  &.open::before { background: #22C55E; }
+  &.locked::before { background: #F59E0B; }
+  &.resolved::before { background: #64748B; }
+}
+
+.card-top {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  margin-bottom: 10px; gap: 12px;
+}
+
+.card-top-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.market-type {
+  font-family: 'Inter', sans-serif; font-size: 13px;
+  color: #94A3B8; margin: 0 0 4px;
+  text-transform: uppercase; letter-spacing: 0.5px;
+}
+
+.cutoff {
+  font-family: 'Inter', sans-serif; font-size: 12px;
+  color: #64748B; margin: 0;
+}
+
+.status-pill {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-family: 'Anton', sans-serif; font-size: 11px;
+  padding: 5px 10px; border-radius: 6px; letter-spacing: 1px;
+  ion-icon { font-size: 12px; }
+
+  .market-card.open & { background: rgba(34, 197, 94, 0.15); color: #22C55E; border: 1px solid rgba(34, 197, 94, 0.3); }
+  .market-card.locked & { background: rgba(245, 158, 11, 0.15); color: #F59E0B; border: 1px solid rgba(245, 158, 11, 0.3); }
+  .market-card.resolved & { background: rgba(100, 116, 139, 0.15); color: #94A3B8; border: 1px solid rgba(100, 116, 139, 0.3); }
+}
+
+.delete-btn {
+  background: transparent;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #EF4444;
+  width: 32px; height: 32px;
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: all 0.2s;
+  ion-icon { font-size: 16px; }
+  &:hover { background: rgba(239, 68, 68, 0.1); border-color: #EF4444; }
+}
+
+.confirm-delete {
+  display: flex; align-items: center; gap: 6px;
+
+  span {
+    font-family: 'Inter', sans-serif;
+    font-size: 12px; color: #EF4444;
+  }
+
+  button {
+    font-family: 'Inter', sans-serif;
+    font-size: 12px; font-weight: 600;
+    padding: 4px 10px; border-radius: 6px;
+    cursor: pointer; border: none;
+  }
+
+  .confirm-yes { background: #EF4444; color: #fff; }
+  .confirm-no { background: #334155; color: #94A3B8; }
+}
+
+.result-line {
+  font-family: 'Inter', sans-serif; font-size: 13px;
+  color: #94A3B8; margin: 8px 0 0;
+  strong { color: #22C55E; font-family: 'Anton', sans-serif; margin-left: 4px; }
+}
+
+.resolve-form {
+  margin-top: 16px; padding-top: 16px;
+  border-top: 1px solid #334155;
+}
+
+.input-item {
+  --background: #1E293B; --border-radius: 10px;
+  border-radius: 10px; border: 1px solid #334155;
+  margin-bottom: 12px;
+}
+
+.resolve-btn {
+  width: 100%; background: linear-gradient(135deg, #8B5CF6, #3B82F6);
+  border: none; border-radius: 10px; padding: 12px;
+  font-family: 'Anton', sans-serif; font-size: 14px;
+  color: #fff; letter-spacing: 1.5px;
+  cursor: pointer; transition: all 0.2s;
+  box-shadow: 0 4px 14px rgba(139, 92, 246, 0.3);
+  &:hover { transform: translateY(-2px); }
+}
+
+/* === ADD MARKET === */
+.add-market-section {
+  margin-top: 8px;
+}
+
+.add-market-btn {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  width: 100%;
+  background: transparent;
+  border: 1px dashed #334155;
+  color: #64748B;
+  font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 600;
+  letter-spacing: 0.5px; text-transform: uppercase;
+  padding: 12px; border-radius: 10px;
+  cursor: pointer; transition: all 0.2s;
+  ion-icon { font-size: 16px; }
+
+  &:hover {
+    border-color: #8B5CF6;
+    color: #8B5CF6;
+  }
+}
+
+.add-market-form {
+  background: #0F172A;
+  border: 1px solid #334155;
+  border-radius: 12px;
+  padding: 20px;
+}
+
+.add-form-title {
+  font-family: 'Anton', sans-serif;
+  font-size: 16px; color: #F1F5F9;
+  letter-spacing: 1px; margin: 0 0 16px;
+}
+
+.add-form-error {
+  font-family: 'Inter', sans-serif;
+  font-size: 13px; color: #EF4444;
+  margin: 0 0 12px;
+  padding: 8px 12px;
+  background: rgba(239, 68, 68, 0.1);
+  border-radius: 8px;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.add-form-actions {
+  display: flex; gap: 10px;
+}
+
+.save-market-btn {
+  flex: 1;
+  background: linear-gradient(135deg, #8B5CF6, #3B82F6);
+  border: none; border-radius: 10px; padding: 12px;
+  font-family: 'Anton', sans-serif; font-size: 14px;
+  color: #fff; letter-spacing: 1.5px;
+  cursor: pointer; transition: all 0.2s;
+  &:hover { transform: translateY(-1px); }
+}
+
+.cancel-btn {
+  background: #1E293B;
+  border: 1px solid #334155;
+  border-radius: 10px; padding: 12px 20px;
+  font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 600;
+  color: #94A3B8; cursor: pointer; transition: all 0.2s;
+  &:hover { border-color: #EF4444; color: #EF4444; }
+}
+
+.empty-state {
+  text-align: center; padding: 60px 20px;
+  color: #64748B; font-size: 16px;
+}
+
+@media (max-width: 768px) {
+  .top-nav { padding: 12px 16px; }
+  .body { padding: 20px 16px; }
+  .page-title { font-size: 30px; }
 }

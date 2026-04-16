@@ -368,8 +368,14 @@ app.post("/admin/events/:id/markets", async (req, res) => {
     };
 
     const sportKey = sport.toUpperCase();
-    const optionsToSeed = optionsBySport[sportKey] || [];
+let optionsToSeed = optionsBySport[sportKey] || [];
 
+// If two specific teams were passed, filter to just those two
+if ((sportKey === 'CRICKET' || sportKey === 'FOOTBALL') && req.body.team1 && req.body.team2) {
+  optionsToSeed = optionsToSeed.filter(o =>
+    o.value === req.body.team1 || o.value === req.body.team2
+  );
+}
     const created = [];
 
     for (const m of markets) {
@@ -499,10 +505,10 @@ app.post("/predictions", authMiddleware, async (req, res) => {
 
     await client.query("BEGIN");
 
-    const marketResult = await client.query(
-      "SELECT id, status, cutoff_at FROM markets WHERE id=$1 FOR UPDATE",
+     const marketResult = await client.query(
+      "SELECT id, type, status, cutoff_at FROM markets WHERE id=$1 FOR UPDATE",
       [market_id]
-    );
+);
 
     if (marketResult.rows.length === 0) {
       await client.query("ROLLBACK");
@@ -538,8 +544,8 @@ app.post("/predictions", authMiddleware, async (req, res) => {
 
     await client.query(
       "INSERT INTO credit_log (user_id, amount, type, description) VALUES ($1, $2, $3, $4)",
-      [userId, -stakeNum, 'STAKE', `Staked on market ${market_id}`]
-    );
+      [userId, -stakeNum, 'STAKE', `Staked on ${market.type} — market #${market_id}`]
+);
 
     await client.query("COMMIT");
 
@@ -705,7 +711,7 @@ app.post("/markets/:id/resolve", async (req, res) => {
 
         await client.query(
           "INSERT INTO credit_log (user_id, amount, type, description) VALUES ($1, $2, $3, $4)",
-          [prediction.user_id, payout, 'PAYOUT', `Won on market ${marketId}`]
+          [prediction.user_id, payout, 'PAYOUT', `Won on ${market.type} — market #${marketId}`]
         );
 
         await client.query(
@@ -774,6 +780,38 @@ app.post("/markets/auto-lock", async (req, res) => {
   }
 });
 
+// Admin delete market (OPEN only)
+app.delete("/admin/markets/:id", async (req, res) => {
+  try {
+    const adminKey = req.headers["x-admin-key"];
+    
+    if (adminKey !== process.env.ADMIN_SECRET) {
+      return res.status(403).json({ message: "Unauthorized" });
+    }
+
+    const marketId = req.params.id;
+
+    const marketResult = await pool.query(
+      "SELECT id, status FROM markets WHERE id=$1",
+      [marketId]
+    );
+
+    if (marketResult.rows.length === 0) {
+      return res.status(404).json({ message: "Market not found" });
+    }
+
+    if (marketResult.rows[0].status !== "OPEN") {
+      return res.status(400).json({ message: "Only OPEN markets can be deleted" });
+    }
+
+    await pool.query("DELETE FROM markets WHERE id=$1", [marketId]);
+
+    return res.json({ message: "Market deleted" });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: "Server error" });
+  }
+});
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {

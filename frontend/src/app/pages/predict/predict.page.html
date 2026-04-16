@@ -67,9 +67,24 @@
         <p class="form-msg success">{{ successMessage }}</p>
       </ion-text>
 
-      <ion-item lines="none" class="input-item" *ngIf="options.length > 0">
+      <!-- TWO TEAM BUTTONS (Cricket / Football) -->
+      <div class="team-picker" *ngIf="isTwoTeam && options.length === 2">
+        <p class="team-picker-label">Select Team</p>
+        <div class="team-buttons">
+          <button
+            *ngFor="let o of options"
+            class="team-btn"
+            [class.selected]="selection === o.value"
+            (click)="selectTeam(o.value)">
+            {{ o.label }}
+          </button>
+        </div>
+      </div>
+
+      <!-- DRIVER DROPDOWN (F1) -->
+      <ion-item lines="none" class="input-item" *ngIf="!isTwoTeam && options.length > 0">
         <ion-select
-          label="Select Driver"
+          [label]="selectionLabel"
           labelPlacement="floating"
           interface="popover"
           [(ngModel)]="selection">
@@ -79,9 +94,10 @@
         </ion-select>
       </ion-item>
 
+      <!-- FALLBACK TEXT INPUT -->
       <ion-item lines="none" class="input-item" *ngIf="options.length === 0">
         <ion-input
-          label="Selection (e.g., VER)"
+          [label]="selectionPlaceholder"
           labelPlacement="floating"
           [(ngModel)]="selection"
           (keyup.enter)="submit()"

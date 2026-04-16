@@ -5,7 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { Api } from '../../services/api';
 import { addIcons } from 'ionicons';
-import { logOutOutline, arrowBackOutline, lockClosedOutline, flashOutline, checkmarkCircleOutline, settingsOutline, chevronDownOutline, chevronUpOutline } from 'ionicons/icons';
+import { logOutOutline, arrowBackOutline, lockClosedOutline, flashOutline, checkmarkCircleOutline, settingsOutline, chevronDownOutline, chevronUpOutline, trashOutline, addOutline } from 'ionicons/icons';
 
 @Component({
   selector: 'app-admin-markets',
@@ -21,8 +21,28 @@ export class AdminMarketsPage implements ViewWillEnter {
   errorMessage = '';
   successMessage = '';
 
+  marketTypesBySport: { [key: string]: { value: string; label: string }[] } = {
+    F1: [
+      { value: 'race_p1', label: 'Race P1 (Winner)' },
+      { value: 'race_p2', label: 'Race P2' },
+      { value: 'race_p3', label: 'Race P3' },
+      { value: 'pole', label: 'Pole Position' },
+      { value: 'sprint_p1', label: 'Sprint P1' },
+      { value: 'sprint_p2', label: 'Sprint P2' },
+      { value: 'sprint_p3', label: 'Sprint P3' },
+      { value: 'fastest_lap', label: 'Fastest Lap' },
+    ],
+    CRICKET: [
+      { value: 'match_winner', label: 'Match Winner' },
+      { value: 'toss_winner', label: 'Toss Winner' },
+    ],
+    FOOTBALL: [
+      { value: 'match_winner', label: 'Match Winner' },
+    ],
+  };
+
   constructor(private api: Api, private router: Router) {
-    addIcons({ logOutOutline, arrowBackOutline, lockClosedOutline, flashOutline, checkmarkCircleOutline, settingsOutline, chevronDownOutline, chevronUpOutline });
+    addIcons({ logOutOutline, arrowBackOutline, lockClosedOutline, flashOutline, checkmarkCircleOutline, settingsOutline, chevronDownOutline, chevronUpOutline, trashOutline, addOutline });
   }
 
   ionViewWillEnter() {
@@ -42,9 +62,9 @@ export class AdminMarketsPage implements ViewWillEnter {
           ...m,
           resolveResult: '',
           options: [],
+          confirmDelete: false,
         }));
 
-        // Group by event
         const groupsMap: { [key: number]: any } = {};
         markets.forEach((m: any) => {
           if (!groupsMap[m.event_id]) {
@@ -57,6 +77,9 @@ export class AdminMarketsPage implements ViewWillEnter {
               openCount: 0,
               lockedCount: 0,
               resolvedCount: 0,
+              showAddForm: false,
+              newMarket: { type: '', multiplier: null, cutoffAt: '' },
+              addError: '',
             };
           }
           groupsMap[m.event_id].markets.push(m);
@@ -68,7 +91,6 @@ export class AdminMarketsPage implements ViewWillEnter {
         this.eventGroups = Object.values(groupsMap);
         this.loading = false;
 
-        // Fetch driver options for LOCKED markets
         markets.forEach((m: any) => {
           if (m.status === 'LOCKED') {
             this.api.getMarketOptions(m.market_id).subscribe({
@@ -87,6 +109,38 @@ export class AdminMarketsPage implements ViewWillEnter {
 
   toggleGroup(group: any) {
     group.expanded = !group.expanded;
+  }
+
+  getMarketTypes(sport: string) {
+    return this.marketTypesBySport[sport?.toUpperCase()] || [];
+  }
+
+  addMarket(group: any) {
+    group.addError = '';
+    const m = group.newMarket;
+
+    if (!m.type || !m.multiplier || !m.cutoffAt) {
+      group.addError = 'Fill in all fields';
+      return;
+    }
+
+    const payload = [{
+      type: m.type,
+      multiplier: m.multiplier,
+      cutoff_at: m.cutoffAt,
+    }];
+
+    this.api.adminCreateMarkets(group.event_id, payload).subscribe({
+      next: () => {
+        this.successMessage = 'Market added!';
+        group.showAddForm = false;
+        group.newMarket = { type: '', multiplier: null, cutoffAt: '' };
+        this.loadMarkets();
+      },
+      error: (err) => {
+        group.addError = err?.error?.message || 'Failed to add market';
+      }
+    });
   }
 
   autoLock() {
@@ -115,6 +169,20 @@ export class AdminMarketsPage implements ViewWillEnter {
       },
       error: (err) => {
         this.errorMessage = err?.error?.message || 'Failed to resolve';
+      }
+    });
+  }
+
+  deleteMarket(m: any) {
+    this.errorMessage = '';
+    this.successMessage = '';
+    this.api.adminDeleteMarket(m.market_id).subscribe({
+      next: () => {
+        this.successMessage = 'Market deleted';
+        this.loadMarkets();
+      },
+      error: (err) => {
+        this.errorMessage = err?.error?.message || 'Failed to delete market';
       }
     });
   }

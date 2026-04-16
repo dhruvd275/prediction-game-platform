@@ -2,7 +2,7 @@
   --background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%);
 }
 
-/* === TOP NAV (shared style) === */
+/* === TOP NAV === */
 .top-nav {
   display: flex;
   align-items: center;
@@ -103,7 +103,11 @@
   padding: 32px;
 }
 
-.page-header {
+/* === HEADER ROW === */
+.header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   margin-bottom: 20px;
 }
 
@@ -120,11 +124,42 @@
   }
 }
 
-/* === FILTER TABS === */
-.filter-tabs {
+.time-dropdown-wrap {
+  select {
+    background: #1E293B;
+    border: 1px solid #334155;
+    color: #F1F5F9;
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 10px 36px 10px 16px;
+    border-radius: 10px;
+    cursor: pointer;
+    outline: none;
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394A3B8' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    transition: border-color 0.2s;
+
+    &:hover {
+      border-color: #3B82F6;
+    }
+
+    option {
+      background: #1E293B;
+      color: #F1F5F9;
+    }
+  }
+}
+
+/* === SPORT TABS === */
+.sport-tabs {
   display: flex;
   gap: 8px;
   margin-bottom: 24px;
+  flex-wrap: wrap;
 
   button {
     background: #1E293B;
@@ -133,21 +168,19 @@
     font-family: 'Inter', sans-serif;
     font-size: 13px;
     font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    padding: 10px 20px;
+    padding: 8px 18px;
     border-radius: 10px;
     cursor: pointer;
     transition: all 0.2s;
 
     &:hover {
-      border-color: #3B82F6;
+      border-color: #8B5CF6;
       color: #F1F5F9;
     }
 
     &.active {
-      background: #3B82F6;
-      border-color: #3B82F6;
+      background: #8B5CF6;
+      border-color: #8B5CF6;
       color: #fff;
     }
   }
@@ -288,8 +321,13 @@
     padding: 20px 16px;
   }
 
+  .header-row {
+    flex-direction: row;
+    align-items: center;
+  }
+
   .page-title {
-    font-size: 30px;
+    font-size: 26px;
   }
 
   .events-grid {

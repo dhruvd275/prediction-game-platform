@@ -83,6 +83,23 @@ export class PredictPage implements ViewWillEnter {
     });
   }
 
+  get isTwoTeam(): boolean {
+    const sport = this.market?.sport?.toUpperCase();
+    return sport === 'CRICKET' || sport === 'FOOTBALL';
+  }
+
+  get selectionLabel(): string {
+    return this.isTwoTeam ? 'Select Team' : 'Select Driver';
+  }
+
+  get selectionPlaceholder(): string {
+    return this.isTwoTeam ? 'Selection (e.g., CSK)' : 'Selection (e.g., VER)';
+  }
+
+  selectTeam(value: string) {
+    this.selection = value;
+  }
+
   get potentialPayout(): string {
     if (!this.stake || !this.market?.multiplier) return '0.00';
     return (Number(this.stake) * Number(this.market.multiplier)).toFixed(2);
@@ -93,7 +110,7 @@ export class PredictPage implements ViewWillEnter {
     this.successMessage = '';
 
     if (!this.selection) {
-      this.errorMessage = 'Select a driver';
+      this.errorMessage = this.isTwoTeam ? 'Select a team' : 'Select a driver';
       return;
     }
 
@@ -116,7 +133,7 @@ export class PredictPage implements ViewWillEnter {
         this.credits = res.credits;
         this.successMessage = 'Prediction submitted!';
         setTimeout(() => {
-          this.router.navigateByUrl('/home');
+          this.router.navigateByUrl('/events');
         }, 1500);
       },
       error: (err) => {
@@ -125,7 +142,6 @@ export class PredictPage implements ViewWillEnter {
       }
     });
   }
-  
 
   goBack() {
     if (this.market?.event_id) {
@@ -135,32 +151,11 @@ export class PredictPage implements ViewWillEnter {
     }
   }
 
-  goHome() {
-    this.router.navigateByUrl('/home');
-  }
-
-  goEvents() {
-    this.router.navigateByUrl('/events');
-  }
-
-  goHistory() {
-    this.router.navigateByUrl('/history');
-  }
-
-  goCreditLog() {
-    this.router.navigateByUrl('/credit-log');
-  }
-
-  goLeaderboard() {
-    this.router.navigateByUrl('/leaderboard');
-  }
-
-  toggleMenu() {
-    this.menuOpen = !this.menuOpen;
-  }
-
-  logout() {
-    this.api.clearToken();
-    this.router.navigateByUrl('/login');
-  }
+  goHome() { this.router.navigateByUrl('/home'); }
+  goEvents() { this.router.navigateByUrl('/events'); }
+  goHistory() { this.router.navigateByUrl('/history'); }
+  goCreditLog() { this.router.navigateByUrl('/credit-log'); }
+  goLeaderboard() { this.router.navigateByUrl('/leaderboard'); }
+  toggleMenu() { this.menuOpen = !this.menuOpen; }
+  logout() { this.api.clearToken(); this.router.navigateByUrl('/login'); }
 }

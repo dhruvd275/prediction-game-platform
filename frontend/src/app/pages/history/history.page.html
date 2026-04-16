@@ -85,7 +85,7 @@
         </div>
 
         <div class="selection-col">
-          <p class="col-label">Pick</p>
+          <p class="col-label">Your Pick</p>
           <p class="selection">{{ p.selection }}</p>
         </div>
 
@@ -97,6 +97,12 @@
         <div class="payout-col">
           <p class="col-label">{{ p.prediction_status === 'WON' ? 'Won' : 'Potential' }}</p>
           <p class="payout">{{ getPayout(p) }}</p>
+        </div>
+
+        <div class="winner-col">
+          <p class="col-label">Winner</p>
+          <p class="winner" *ngIf="p.market_result">{{ p.market_result }}</p>
+          <p class="winner pending-result" *ngIf="!p.market_result">—</p>
         </div>
 
         <div class="date-col">

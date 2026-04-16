@@ -116,7 +116,7 @@
 
 /* === HISTORY BODY === */
 .history-body {
-  max-width: 1200px;
+  max-width: 1400px;
   margin: 0 auto;
   padding: 32px;
 }
@@ -218,7 +218,7 @@
 
 .prediction-row {
   display: grid;
-  grid-template-columns: 100px 2fr 1fr 1.4fr 1fr 1.2fr;
+  grid-template-columns: 100px 2fr 1fr 1.4fr 1fr 1fr 1.2fr;
   align-items: center;
   gap: 16px;
   background: #1E293B;
@@ -337,6 +337,23 @@
   }
 }
 
+.winner-col {
+  .winner {
+    font-family: 'Anton', sans-serif;
+    font-size: 16px;
+    color: #22C55E;
+    margin: 0;
+    letter-spacing: 1px;
+  }
+
+  .pending-result {
+    font-family: 'Inter', sans-serif;
+    font-size: 16px;
+    color: #64748B;
+    margin: 0;
+  }
+}
+
 .date-col {
   .date {
     font-family: 'Inter', sans-serif;
@@ -356,7 +373,7 @@
 /* === RESPONSIVE === */
 @media (max-width: 1024px) {
   .prediction-row {
-    grid-template-columns: 90px 1.5fr 1fr 1.2fr 1fr 1fr;
+    grid-template-columns: 90px 1.5fr 1fr 1.2fr 1fr 1fr 1fr;
     padding: 16px;
     gap: 12px;
   }
@@ -429,6 +446,10 @@
   }
 
   .event-col {
+    grid-column: 1 / -1;
+  }
+
+  .winner-col {
     grid-column: 1 / -1;
   }
 }

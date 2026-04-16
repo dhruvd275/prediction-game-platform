@@ -30,6 +30,12 @@ docker exec -it pg_prediction_game psql -U pguser -d prediction_game
 \dt
 \q
 
+
+-------------------------------------------------------------------------------------------
+To add Credit for users
+
+docker exec -it pg_prediction_game psql -U pguser -d prediction_game -c "UPDATE users SET credits = credits + 500 WHERE email = 'test@test.com';"
+
 ----------------------------------------------------------------------------------------------
 >Test Register Endpoint:
 curl -X POST http://localhost:3000/auth/register \
@@ -58,5 +64,15 @@ curl -X POST http://localhost:3000/auth/login \
 
   >To  Confirm branches:
   git branch
+
+
+----------------------------------------------------------------------------------------------------
+To delete a market
+
+>first get a id
+docker exec -it pg_prediction_game psql -U pguser -d prediction_game -c "SELECT id, sport, name FROM events ORDER BY id;"
+
+Then delete by id
+docker exec -it pg_prediction_game psql -U pguser -d prediction_game -c "DELETE FROM events WHERE id=16;"                  
 
   

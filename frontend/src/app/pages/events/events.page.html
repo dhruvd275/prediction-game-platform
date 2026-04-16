@@ -27,14 +27,24 @@
   <!-- BODY -->
   <div class="events-body">
 
-    <div class="page-header">
+    <!-- HEADER ROW -->
+    <div class="header-row">
       <h1 class="page-title">Events <span class="count">({{ events.length }})</span></h1>
+      <div class="time-dropdown-wrap">
+        <select class="time-dropdown" [(ngModel)]="timeFilter" (change)="applyFilter()">
+          <option value="all">All</option>
+          <option value="upcoming">Upcoming</option>
+          <option value="past">Past</option>
+        </select>
+      </div>
     </div>
 
-    <div class="filter-tabs">
-      <button [class.active]="filter === 'all'" (click)="setFilter('all')">All</button>
-      <button [class.active]="filter === 'upcoming'" (click)="setFilter('upcoming')">Upcoming</button>
-      <button [class.active]="filter === 'past'" (click)="setFilter('past')">Past</button>
+    <!-- SPORT FILTER -->
+    <div class="sport-tabs">
+      <button [class.active]="sportFilter === 'all'" (click)="setSportFilter('all')">All Sports</button>
+      <button [class.active]="sportFilter === 'F1'" (click)="setSportFilter('F1')">🏎 F1</button>
+      <button [class.active]="sportFilter === 'CRICKET'" (click)="setSportFilter('CRICKET')">🏏 Cricket</button>
+      <button [class.active]="sportFilter === 'FOOTBALL'" (click)="setSportFilter('FOOTBALL')">⚽ Football</button>
     </div>
 
     <ion-text color="danger" *ngIf="errorMessage">
@@ -73,7 +83,7 @@
 
     <!-- EMPTY STATE -->
     <div class="empty-state" *ngIf="!loading && events.length === 0 && !errorMessage">
-      <p>No {{ filter }} events found.</p>
+      <p>No {{ timeFilter }} events found.</p>
     </div>
 
   </div>

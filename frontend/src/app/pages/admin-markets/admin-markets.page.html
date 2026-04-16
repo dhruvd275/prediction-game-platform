@@ -45,6 +45,8 @@
         </button>
 
         <div class="markets-list" *ngIf="group.expanded">
+
+          <!-- EXISTING MARKETS -->
           <div class="market-card" *ngFor="let m of group.markets"
                [class.open]="m.status === 'OPEN'"
                [class.locked]="m.status === 'LOCKED'"
@@ -55,12 +57,24 @@
                 <p class="market-type">{{ m.market_type }} • {{ m.multiplier }}x</p>
                 <p class="cutoff">Cutoff: {{ m.cutoff_at | date:'MMM d, y – h:mm a' }}</p>
               </div>
-              <span class="status-pill">
-                <ion-icon *ngIf="m.status === 'OPEN'" name="flash-outline"></ion-icon>
-                <ion-icon *ngIf="m.status === 'LOCKED'" name="lock-closed-outline"></ion-icon>
-                <ion-icon *ngIf="m.status === 'RESOLVED'" name="checkmark-circle-outline"></ion-icon>
-                {{ m.status }}
-              </span>
+              <div class="card-top-right">
+                <span class="status-pill">
+                  <ion-icon *ngIf="m.status === 'OPEN'" name="flash-outline"></ion-icon>
+                  <ion-icon *ngIf="m.status === 'LOCKED'" name="lock-closed-outline"></ion-icon>
+                  <ion-icon *ngIf="m.status === 'RESOLVED'" name="checkmark-circle-outline"></ion-icon>
+                  {{ m.status }}
+                </span>
+                <div class="delete-wrap" *ngIf="m.status === 'OPEN'">
+                  <button class="delete-btn" *ngIf="!m.confirmDelete" (click)="m.confirmDelete = true">
+                    <ion-icon name="trash-outline"></ion-icon>
+                  </button>
+                  <div class="confirm-delete" *ngIf="m.confirmDelete">
+                    <span>Delete?</span>
+                    <button class="confirm-yes" (click)="deleteMarket(m)">Yes</button>
+                    <button class="confirm-no" (click)="m.confirmDelete = false">No</button>
+                  </div>
+                </div>
+              </div>
             </div>
 
             <p class="result-line" *ngIf="m.result">Result: <strong>{{ m.result }}</strong></p>
@@ -78,7 +92,58 @@
               </ion-item>
               <button class="resolve-btn" (click)="resolve(m)">Resolve Market</button>
             </div>
+
           </div>
+
+          <!-- ADD MARKET FORM -->
+          <div class="add-market-section">
+            <button class="add-market-btn" *ngIf="!group.showAddForm" (click)="group.showAddForm = true; group.expanded = true">
+              <ion-icon name="add-outline"></ion-icon>
+              Add Market to this Event
+            </button>
+
+            <div class="add-market-form" *ngIf="group.showAddForm">
+              <p class="add-form-title">New Market</p>
+
+              <ion-item lines="none" class="input-item">
+                <ion-select
+                  label="Market Type"
+                  labelPlacement="floating"
+                  interface="popover"
+                  [(ngModel)]="group.newMarket.type">
+                  <ion-select-option *ngFor="let t of getMarketTypes(group.sport)" [value]="t.value">
+                    {{ t.label }}
+                  </ion-select-option>
+                </ion-select>
+              </ion-item>
+
+              <ion-item lines="none" class="input-item">
+                <ion-input
+                  type="number"
+                  label="Multiplier (e.g. 2.50)"
+                  labelPlacement="floating"
+                  [(ngModel)]="group.newMarket.multiplier">
+                </ion-input>
+              </ion-item>
+
+              <ion-item lines="none" class="input-item">
+                <ion-input
+                  type="datetime-local"
+                  label="Cutoff Time"
+                  labelPlacement="floating"
+                  [(ngModel)]="group.newMarket.cutoffAt">
+                </ion-input>
+              </ion-item>
+
+              <p class="add-form-error" *ngIf="group.addError">{{ group.addError }}</p>
+
+              <div class="add-form-actions">
+                <button class="save-market-btn" (click)="addMarket(group)">Save Market</button>
+                <button class="cancel-btn" (click)="group.showAddForm = false; group.addError = ''">Cancel</button>
+              </div>
+            </div>
+          </div>
+
         </div>
 
       </div>

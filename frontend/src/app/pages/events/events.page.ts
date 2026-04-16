@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { IonicModule } from '@ionic/angular';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { Api } from '../../services/api';
 import { addIcons } from 'ionicons';
@@ -11,7 +12,7 @@ import { logOutOutline, menuOutline, flagOutline, calendarOutline, timeOutline }
   templateUrl: './events.page.html',
   styleUrls: ['./events.page.scss'],
   standalone: true,
-  imports: [IonicModule, CommonModule, RouterModule],
+  imports: [IonicModule, CommonModule, FormsModule, RouterModule],
 })
 export class EventsPage implements OnInit {
 
@@ -19,7 +20,8 @@ export class EventsPage implements OnInit {
   events: any[] = [];
   loading = true;
   errorMessage = '';
-  filter: 'all' | 'upcoming' | 'past' = 'upcoming';
+  timeFilter: 'all' | 'upcoming' | 'past' = 'upcoming';
+  sportFilter: 'all' | 'F1' | 'CRICKET' | 'FOOTBALL' = 'all';
   menuOpen = false;
 
   constructor(private api: Api, private router: Router) {
@@ -46,52 +48,37 @@ export class EventsPage implements OnInit {
     });
   }
 
-  setFilter(filter: 'all' | 'upcoming' | 'past') {
-    this.filter = filter;
+  setSportFilter(sport: 'all' | 'F1' | 'CRICKET' | 'FOOTBALL') {
+    this.sportFilter = sport;
     this.applyFilter();
   }
 
   applyFilter() {
     const now = new Date();
-    if (this.filter === 'all') {
-      this.events = this.allEvents;
-    } else if (this.filter === 'upcoming') {
-      this.events = this.allEvents.filter(e => new Date(e.starts_at) > now);
-    } else {
-      this.events = this.allEvents.filter(e => new Date(e.starts_at) <= now);
+    let result = [...this.allEvents];
+
+    if (this.timeFilter === 'upcoming') {
+      result = result.filter(e => new Date(e.starts_at) > now);
+    } else if (this.timeFilter === 'past') {
+      result = result.filter(e => new Date(e.starts_at) <= now);
     }
+
+    if (this.sportFilter !== 'all') {
+      result = result.filter(e => e.sport === this.sportFilter);
+    }
+
+    this.events = result;
   }
 
   openMarkets(eventId: number) {
     this.router.navigateByUrl(`/events/${eventId}/markets`);
   }
 
-  goHome() {
-    this.router.navigateByUrl('/home');
-  }
-
-  goEvents() {
-    this.router.navigateByUrl('/events');
-  }
-
-  goHistory() {
-    this.router.navigateByUrl('/history');
-  }
-
-  goCreditLog() {
-    this.router.navigateByUrl('/credit-log');
-  }
-
-  goLeaderboard() {
-    this.router.navigateByUrl('/leaderboard');
-  }
-
-  toggleMenu() {
-    this.menuOpen = !this.menuOpen;
-  }
-
-  logout() {
-    this.api.clearToken();
-    this.router.navigateByUrl('/login');
-  }
+  goHome() { this.router.navigateByUrl('/home'); }
+  goEvents() { this.router.navigateByUrl('/events'); }
+  goHistory() { this.router.navigateByUrl('/history'); }
+  goCreditLog() { this.router.navigateByUrl('/credit-log'); }
+  goLeaderboard() { this.router.navigateByUrl('/leaderboard'); }
+  toggleMenu() { this.menuOpen = !this.menuOpen; }
+  logout() { this.api.clearToken(); this.router.navigateByUrl('/login'); }
 }

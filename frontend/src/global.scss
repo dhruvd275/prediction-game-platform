@@ -35,3 +35,12 @@
 /* @import "@ionic/angular/css/palettes/dark.always.css"; */
 /* @import "@ionic/angular/css/palettes/dark.class.css"; */
 @import '@ionic/angular/css/palettes/dark.system.css';
+
+input[type="password"] {
+  font-size: 14px !important;
+  letter-spacing: 4px;
+}
+
+ion-router-outlet {
+  touch-action: pan-y;
+}

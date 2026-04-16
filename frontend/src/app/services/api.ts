@@ -8,7 +8,9 @@ import { environment } from '../../environments/environment';
 })
 export class Api {
 
-  private baseUrl = environment.apiBaseUrl;
+  private baseUrl = environment.production
+    ? environment.apiBaseUrl
+    : `http://${window.location.hostname}:3000`;
 
   constructor(private http: HttpClient) {}
 
@@ -84,16 +86,16 @@ export class Api {
   }
 
   myStats(): Observable<any> {
-  return this.http.get(`${this.baseUrl}/me/stats`, {
-    headers: this.authHeaders(),
-  });
-}
+    return this.http.get(`${this.baseUrl}/me/stats`, {
+      headers: this.authHeaders(),
+    });
+  }
 
   myCreditLog(): Observable<any> {
-  return this.http.get(`${this.baseUrl}/me/credit-log`, {
-    headers: this.authHeaders(),
-  });
-}
+    return this.http.get(`${this.baseUrl}/me/credit-log`, {
+      headers: this.authHeaders(),
+    });
+  }
 
   // --- Events ---
 
@@ -173,9 +175,20 @@ export class Api {
     });
   }
 
-  adminCreateMarkets(eventId: number, markets: any[]): Observable<any> {
-    return this.http.post(`${this.baseUrl}/admin/events/${eventId}/markets`, { markets }, {
-      headers: this.adminHeaders(),
+  adminDeleteMarket(marketId: number): Observable<any> {
+  return this.http.delete(`${this.baseUrl}/admin/markets/${marketId}`, {
+    headers: this.adminHeaders(),
+  });
+}
+
+ adminCreateMarkets(eventId: number, markets: any[], team1?: string, team2?: string): Observable<any> {
+  const body: any = { markets };
+  if (team1) body.team1 = team1;
+  if (team2) body.team2 = team2;
+    return this.http.post(`${this.baseUrl}/admin/events/${eventId}/markets`, body, {
+    headers: this.adminHeaders(),
     });
   }
+
+
 }
