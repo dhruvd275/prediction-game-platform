@@ -156,7 +156,7 @@ export class AdminCreateEventPage {
         const payload = this.markets.map(m => ({
           type: m.type,
           multiplier: m.multiplier,
-          cutoff_at: m.cutoffAt,
+          cutoff_at: m.cutoffAt,        
         }));
         this.api.adminCreateMarkets(eventId, payload, this.team1, this.team2).subscribe({
           next: () => {

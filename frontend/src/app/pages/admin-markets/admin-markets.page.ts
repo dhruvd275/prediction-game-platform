@@ -107,6 +107,14 @@ export class AdminMarketsPage implements ViewWillEnter {
     });
   }
 
+  formatDate(dateStr: string): string {
+  const utcStr = dateStr.endsWith('Z') ? dateStr : dateStr.replace(' ', 'T') + 'Z';
+  return new Date(utcStr).toLocaleString('en-IE', {
+    month: 'short', day: 'numeric', year: 'numeric',
+    hour: 'numeric', minute: '2-digit', hour12: true
+  });
+}
+
   toggleGroup(group: any) {
     group.expanded = !group.expanded;
   }
@@ -123,7 +131,6 @@ export class AdminMarketsPage implements ViewWillEnter {
       group.addError = 'Fill in all fields';
       return;
     }
-
     const payload = [{
       type: m.type,
       multiplier: m.multiplier,

@@ -17,7 +17,6 @@ export class MarketsPage implements ViewWillEnter {
 
   eventId!: number;
   event: any = null;
-
   markets: any[] = [];
   loading = true;
   errorMessage = '';
@@ -32,20 +31,17 @@ export class MarketsPage implements ViewWillEnter {
   }
 
   ionViewWillEnter() {
-  this.eventId = Number(this.route.snapshot.paramMap.get('id'));
-  this.load();
-}
+    this.eventId = Number(this.route.snapshot.paramMap.get('id'));
+    this.load();
+  }
+
   load() {
     this.loading = true;
     this.errorMessage = '';
 
     this.api.getEvent(this.eventId).subscribe({
-      next: (res: any) => {
-        this.event = res.event;
-      },
-      error: () => {
-        this.event = null;
-      }
+      next: (res: any) => { this.event = res.event; },
+      error: () => { this.event = null; }
     });
 
     this.api.getMarkets(this.eventId).subscribe({
@@ -60,37 +56,32 @@ export class MarketsPage implements ViewWillEnter {
     });
   }
 
+  formatDate(dateStr: string): string {
+  const utcStr = dateStr.endsWith('Z') ? dateStr : dateStr.replace(' ', 'T') + 'Z';
+  return new Date(utcStr).toLocaleString('en-IE', {
+    month: 'short', day: 'numeric', year: 'numeric',
+    hour: 'numeric', minute: '2-digit', hour12: true
+  });
+}
+
+ formatDateTime(dateStr: string): string {
+  const utcStr = dateStr.endsWith('Z') ? dateStr : dateStr.replace(' ', 'T') + 'Z';
+  return new Date(utcStr).toLocaleString('en-IE', {
+    month: 'short', day: 'numeric', year: 'numeric',
+    hour: 'numeric', minute: '2-digit', hour12: true
+  });
+}
+
   openPredict(m: any) {
     if (m.status !== 'OPEN') return;
     this.router.navigateByUrl(`/markets/${m.id}/predict`);
   }
 
-  goHome() {
-    this.router.navigateByUrl('/home');
-  }
-
-  goEvents() {
-    this.router.navigateByUrl('/events');
-  }
-
-  goHistory() {
-    this.router.navigateByUrl('/history');
-  }
-
-  goCreditLog() {
-    this.router.navigateByUrl('/credit-log');
-  }
-
-  goLeaderboard() {
-    this.router.navigateByUrl('/leaderboard');
-  }
-
-  toggleMenu() {
-    this.menuOpen = !this.menuOpen;
-  }
-
-  logout() {
-    this.api.clearToken();
-    this.router.navigateByUrl('/login');
-  }
+  goHome() { this.router.navigateByUrl('/home'); }
+  goEvents() { this.router.navigateByUrl('/events'); }
+  goHistory() { this.router.navigateByUrl('/history'); }
+  goCreditLog() { this.router.navigateByUrl('/credit-log'); }
+  goLeaderboard() { this.router.navigateByUrl('/leaderboard'); }
+  toggleMenu() { this.menuOpen = !this.menuOpen; }
+  logout() { this.api.clearToken(); this.router.navigateByUrl('/login'); }
 }

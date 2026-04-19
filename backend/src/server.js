@@ -367,7 +367,7 @@ app.post("/admin/events/:id/markets", async (req, res) => {
       ],
     };
 
-    const sportKey = sport.toUpperCase();
+const sportKey = sport.toUpperCase();
 let optionsToSeed = optionsBySport[sportKey] || [];
 
 // If two specific teams were passed, filter to just those two
@@ -375,6 +375,19 @@ if ((sportKey === 'CRICKET' || sportKey === 'FOOTBALL') && req.body.team1 && req
   optionsToSeed = optionsToSeed.filter(o =>
     o.value === req.body.team1 || o.value === req.body.team2
   );
+} else if (sportKey === 'CRICKET' || sportKey === 'FOOTBALL') {
+  // No teams passed — look up existing options from this event's markets
+  const existingOptions = await pool.query(
+    `SELECT DISTINCT mo.value, mo.label 
+     FROM market_options mo
+     JOIN markets m ON mo.market_id = m.id
+     WHERE m.event_id = $1
+     LIMIT 2`,
+    [eventId]
+  );
+  if (existingOptions.rows.length === 2) {
+    optionsToSeed = existingOptions.rows;
+  }
 }
     const created = [];
 
@@ -384,8 +397,8 @@ if ((sportKey === 'CRICKET' || sportKey === 'FOOTBALL') && req.body.team1 && req
       }
 
       const result = await pool.query(
-        "INSERT INTO markets (event_id, type, multiplier, cutoff_at) VALUES ($1, $2, $3, $4) RETURNING id, type, multiplier, cutoff_at, status",
-        [eventId, m.type, m.multiplier, m.cutoff_at]
+        "INSERT INTO markets (event_id, type, multiplier, cutoff_at) VALUES ($1, $2, $3, $4::timestamptz) RETURNING id, type, multiplier, cutoff_at, status",
+          [eventId, m.type, m.multiplier, m.cutoff_at]
       );
 
       const newMarket = result.rows[0];
@@ -764,7 +777,7 @@ app.post("/markets/auto-lock", async (req, res) => {
       UPDATE markets
       SET status = 'LOCKED'
       WHERE status = 'OPEN'
-        AND cutoff_at <= NOW()
+        AND cutoff_at <= NOW() AT TIME ZONE 'Europe/Dublin'
       RETURNING id, event_id, type, cutoff_at, status
       `
     );

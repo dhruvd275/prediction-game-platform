@@ -55,7 +55,7 @@
             <div class="card-top">
               <div>
                 <p class="market-type">{{ m.market_type }} • {{ m.multiplier }}x</p>
-                <p class="cutoff">Cutoff: {{ m.cutoff_at | date:'MMM d, y – h:mm a' }}</p>
+                <p class="cutoff">Cutoff: {{ formatDate(m.cutoff_at) }}</p>
               </div>
               <div class="card-top-right">
                 <span class="status-pill">
