@@ -36,6 +36,23 @@
       Back to Markets
     </a>
 
+    <!-- LOADING SKELETON -->
+    <div class="skeleton-wrap" *ngIf="!market">
+      <div class="skeleton-hero">
+        <ion-skeleton-text [animated]="true" style="width: 60px; height: 24px; border-radius: 6px;"></ion-skeleton-text>
+        <ion-skeleton-text [animated]="true" style="width: 80%; height: 36px; margin-top: 16px; border-radius: 8px;"></ion-skeleton-text>
+        <ion-skeleton-text [animated]="true" style="width: 40%; height: 20px; margin-top: 10px; border-radius: 6px;"></ion-skeleton-text>
+        <ion-skeleton-text [animated]="true" style="width: 80px; height: 60px; margin-top: 16px; border-radius: 8px;"></ion-skeleton-text>
+      </div>
+      <div class="skeleton-form">
+        <ion-skeleton-text [animated]="true" style="width: 50%; height: 24px; margin: 0 auto 24px; border-radius: 6px;"></ion-skeleton-text>
+        <ion-skeleton-text [animated]="true" style="width: 100%; height: 56px; border-radius: 12px; margin-bottom: 16px;"></ion-skeleton-text>
+        <ion-skeleton-text [animated]="true" style="width: 100%; height: 56px; border-radius: 12px; margin-bottom: 16px;"></ion-skeleton-text>
+        <ion-skeleton-text [animated]="true" style="width: 100%; height: 56px; border-radius: 12px; margin-bottom: 16px;"></ion-skeleton-text>
+        <ion-skeleton-text [animated]="true" style="width: 100%; height: 52px; border-radius: 12px;"></ion-skeleton-text>
+      </div>
+    </div>
+
     <!-- MARKET HERO -->
     <div class="market-hero" *ngIf="market">
       <div class="hero-top">
@@ -55,7 +72,7 @@
     </div>
 
     <!-- PREDICTION FORM -->
-    <div class="form-card">
+    <div class="form-card" *ngIf="market">
 
       <h2 class="form-title">Place Your Prediction</h2>
 

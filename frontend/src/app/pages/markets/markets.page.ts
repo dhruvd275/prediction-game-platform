@@ -1,5 +1,5 @@
-import { Component, OnInit } from '@angular/core';
-import { IonicModule } from '@ionic/angular';
+import { Component } from '@angular/core';
+import { IonicModule, ViewWillEnter } from '@ionic/angular';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { Api } from '../../services/api';
@@ -13,7 +13,7 @@ import { logOutOutline, menuOutline, arrowBackOutline, calendarOutline, timeOutl
   standalone: true,
   imports: [IonicModule, CommonModule, RouterModule],
 })
-export class MarketsPage implements OnInit {
+export class MarketsPage implements ViewWillEnter {
 
   eventId!: number;
   event: any = null;
@@ -31,11 +31,10 @@ export class MarketsPage implements OnInit {
     addIcons({ logOutOutline, menuOutline, arrowBackOutline, calendarOutline, timeOutline, lockClosedOutline, checkmarkCircleOutline, flashOutline });
   }
 
-  ngOnInit() {
-    this.eventId = Number(this.route.snapshot.paramMap.get('id'));
-    this.load();
-  }
-
+  ionViewWillEnter() {
+  this.eventId = Number(this.route.snapshot.paramMap.get('id'));
+  this.load();
+}
   load() {
     this.loading = true;
     this.errorMessage = '';

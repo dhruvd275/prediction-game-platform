@@ -44,3 +44,19 @@ input[type="password"] {
 ion-router-outlet {
   touch-action: pan-y;
 }
+
+@media (hover: none) {
+  .event-card:hover,
+  .market-card:hover,
+  .prediction-row:hover {
+    transform: none !important;
+    border-color: #334155 !important;
+    box-shadow: none !important;
+  }
+}
+
+ion-router-outlet {
+  contain: strict;
+}
+
+

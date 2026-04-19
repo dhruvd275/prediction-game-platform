@@ -1,5 +1,5 @@
-import { Component, OnInit } from '@angular/core';
-import { IonicModule } from '@ionic/angular';
+import { Component } from '@angular/core';
+import { IonicModule, ViewWillEnter } from '@ionic/angular';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
@@ -14,7 +14,7 @@ import { logOutOutline, menuOutline, flagOutline, calendarOutline, timeOutline }
   standalone: true,
   imports: [IonicModule, CommonModule, FormsModule, RouterModule],
 })
-export class EventsPage implements OnInit {
+export class EventsPage implements ViewWillEnter {
 
   allEvents: any[] = [];
   events: any[] = [];
@@ -28,9 +28,9 @@ export class EventsPage implements OnInit {
     addIcons({ logOutOutline, menuOutline, flagOutline, calendarOutline, timeOutline });
   }
 
-  ngOnInit() {
-    this.loadEvents();
-  }
+  ionViewWillEnter() {
+  this.loadEvents();
+}
 
   loadEvents() {
     this.loading = true;

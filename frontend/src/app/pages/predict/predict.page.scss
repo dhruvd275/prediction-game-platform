@@ -426,3 +426,33 @@
     font-size: 44px;
   }
 }
+
+.skeleton-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.skeleton-hero {
+  background: #1E293B;
+  border: 1px solid #334155;
+  border-radius: 16px;
+  padding: 28px 32px;
+
+  ion-skeleton-text {
+    --background: #334155;
+    --background-rgb: 51, 65, 85;
+  }
+}
+
+.skeleton-form {
+  background: #1E293B;
+  border: 1px solid #334155;
+  border-radius: 16px;
+  padding: 28px 32px;
+
+  ion-skeleton-text {
+    --background: #334155;
+    --background-rgb: 51, 65, 85;
+  }
+}
