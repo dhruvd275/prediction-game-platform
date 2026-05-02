@@ -1,78 +1,563 @@
-> To make a container and up running:
+# BoldTake — Prediction-Based Sports Game Using Virtual Credits
+
+**Student:** Dhruv Dhola (20001467)
+**Module:** B8IS133 PROJECT — BSc (Hons) in Computing
+**Repo:** https://github.com/dhruvd275/prediction-game-platform
+
+---
+
+## Overview
+
+BoldTake is a web-based sports prediction game where users sign up, receive virtual credits, and use them to predict outcomes of real sports events across Formula 1, Cricket, and Football. No real money is involved — it is fully simulated and academic.
+
+---
+
+## Tech Stack
+
+| Layer | Technology |
+|---|---|
+| Backend | Node.js + Express |
+| Database | PostgreSQL 16 (Docker) |
+| Auth | JWT + bcrypt |
+| Frontend | Ionic + Angular |
+| Version Control | Git + GitHub |
+
+---
+
+## Prerequisites
+
+Make sure you have the following installed before running the project:
+
+- [Node.js](https://nodejs.org/) (v18 or higher)
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/)
+- [Ionic CLI](https://ionicframework.com/docs/cli) — `npm install -g @ionic/cli`
+- Git
+
+---
+
+## Project Structure
+
+```
+prediction-game-platform/
+├── backend/
+│   ├── src/
+│   │   ├── server.js          # Main Express server
+│   │   ├── db.js              # PostgreSQL connection pool
+│   │   └── authMiddleware.js  # JWT auth middleware
+│   ├── sql/
+│   │   ├── 001_init.sql       # Users table
+│   │   ├── 002_game_core.sql  # Events, markets, predictions
+│   │   ├── 003_seed_f1_event.sql
+│   │   ├── 004_market_options.sql
+│   │   ├── 005_credit_log.sql
+│   │   ├── 006_add_username.sql
+│   │   └── 007_teams_players.sql
+│   ├── .env                   # Environment variables (not committed)
+│   └── package.json
+├── frontend/
+│   ├── src/
+│   │   └── app/
+│   │       ├── pages/         # All page components
+│   │       ├── services/      # API service
+│   │       └── guards/        # Auth guards
+│   └── package.json
+└── docker-compose.yml
+```
+
+---
+
+## Getting Started
+
+### Step 1 — Clone the Repository
+
+```bash
+git clone https://github.com/dhruvd275/prediction-game-platform.git
+cd prediction-game-platform
+git checkout dev
+```
+
+---
+
+### Step 2 — Set Up Environment Variables
+
+Create a `.env` file inside the `backend/` folder:
+
+```bash
+cd backend
+touch .env
+```
+
+Add the following to `.env`:
+
+```
+PORT=3000
+DATABASE_URL=postgresql://pguser:pgpass@localhost:5432/prediction_game
+JWT_SECRET=change_this_later
+ADMIN_SECRET=supersecretkey
+CRICKET_API_KEY=your_cricket_api_key
+FOOTBALL_API_KEY=your_football_api_key
+```
+
+---
+
+### Step 3 — Start the Database
+
+```bash
+# From the project root
 docker compose up -d
 
-> To verify and check the status:
+# Verify the container is running
 docker ps
+```
 
->Connect to database:
-docker exec -it pg_prediction_game psql -U pguser -d prediction_game
+You should see `pg_prediction_game` listed with status `Up`.
 
->Test database:
-SELECT 1;
-\q
+---
 
----------------------------------------------------------------------------------------------
->Start development server:
+### Step 4 — Run Database Migrations
+
+Run all SQL migrations in order:
+
+```bash
+docker exec -i pg_prediction_game psql -U pguser -d prediction_game < backend/sql/001_init.sql
+docker exec -i pg_prediction_game psql -U pguser -d prediction_game < backend/sql/002_game_core.sql
+docker exec -i pg_prediction_game psql -U pguser -d prediction_game < backend/sql/003_seed_f1_event.sql
+docker exec -i pg_prediction_game psql -U pguser -d prediction_game < backend/sql/004_market_options.sql
+docker exec -i pg_prediction_game psql -U pguser -d prediction_game < backend/sql/005_credit_log.sql
+docker exec -i pg_prediction_game psql -U pguser -d prediction_game < backend/sql/006_add_username.sql
+docker exec -i pg_prediction_game psql -U pguser -d prediction_game < backend/sql/007_teams_players.sql
+```
+
+Verify tables were created:
+
+```bash
+docker exec -it pg_prediction_game psql -U pguser -d prediction_game -c "\dt"
+```
+
+---
+
+### Step 5 — Install Backend Dependencies and Start
+
+```bash
 cd backend
+npm install
 npm run dev
+```
 
->Test health route:
+Test the backend is running:
+
+```bash
 curl http://localhost:3000/health
+```
 
----------------------------------------------------------------------------------------
-Create Database Tables
+Expected response: `{"status":"ok","message":"Backend is running"}`
 
->Run SQL file:
-docker exec -i pg_prediction_game psql -U pguser -d prediction_game < sql/001_init.sql
+---
 
->Verify tables:
+### Step 6 — Install Frontend Dependencies and Start
+
+Open a new terminal window:
+
+```bash
+cd frontend
+npm install
+ionic serve
+```
+
+The app will open at: `http://localhost:8100`
+
+To access from other devices on the same WiFi:
+
+```bash
+ionic serve --external
+```
+
+---
+
+## Accessing the Application
+
+### User Side
+- URL: `http://localhost:8100`
+- Register a new account or use an existing test account
+- Default credits on registration: **1000.00**
+
+### Admin Side
+- URL: `http://localhost:8100/admin-login`
+- Admin Key: `supersecretkey` (from your `.env` ADMIN_SECRET)
+
+---
+
+## Database Commands
+
+### Connect to Database
+
+```bash
 docker exec -it pg_prediction_game psql -U pguser -d prediction_game
-\dt
-\q
+```
 
+### View All Tables
 
--------------------------------------------------------------------------------------------
-To add Credit for users
+```bash
+docker exec -it pg_prediction_game psql -U pguser -d prediction_game -c "\dt"
+```
 
+### View All Users
+
+```bash
+docker exec -it pg_prediction_game psql -U pguser -d prediction_game -c "SELECT id, email, username, credits FROM users ORDER BY id;"
+```
+
+### View All Events
+
+```bash
+docker exec -it pg_prediction_game psql -U pguser -d prediction_game -c "SELECT id, sport, name, starts_at FROM events ORDER BY id;"
+```
+
+### View All Markets
+
+```bash
+docker exec -it pg_prediction_game psql -U pguser -d prediction_game -c "SELECT id, event_id, type, status, cutoff_at FROM markets ORDER BY id;"
+```
+
+### View All Predictions
+
+```bash
+docker exec -it pg_prediction_game psql -U pguser -d prediction_game -c "SELECT id, user_id, market_id, selection, stake, status FROM predictions ORDER BY id;"
+```
+
+### View Credit Log
+
+```bash
+docker exec -it pg_prediction_game psql -U pguser -d prediction_game -c "SELECT * FROM credit_log ORDER BY created_at DESC LIMIT 20;"
+```
+
+### View Leaderboard
+
+```bash
+docker exec -it pg_prediction_game psql -U pguser -d prediction_game -c "SELECT username, credits FROM users ORDER BY credits DESC;"
+```
+
+---
+
+## User Management Commands
+
+### Add Credits to a User
+
+```bash
 docker exec -it pg_prediction_game psql -U pguser -d prediction_game -c "UPDATE users SET credits = credits + 500 WHERE email = 'test@test.com';"
+```
 
-----------------------------------------------------------------------------------------------
->Test Register Endpoint:
+### Set Credits to a Specific Amount
+
+```bash
+docker exec -it pg_prediction_game psql -U pguser -d prediction_game -c "UPDATE users SET credits = 1000 WHERE email = 'test@test.com';"
+```
+
+### Top Up All Users
+
+```bash
+docker exec -it pg_prediction_game psql -U pguser -d prediction_game -c "UPDATE users SET credits = 1000;"
+```
+
+### Reset a User Password
+
+Step 1 — Generate bcrypt hash (run from inside `backend/` folder):
+
+```bash
+cd backend
+node -e "const bcrypt = require('bcrypt'); bcrypt.hash('NewPassword123!', 10).then(h => console.log(h));"
+```
+
+Step 2 — Update in database (use single quotes around the hash):
+
+```bash
+docker exec -it pg_prediction_game psql -U pguser -d prediction_game
+```
+
+Then inside psql:
+
+```sql
+UPDATE users SET password_hash = 'PASTE_HASH_HERE' WHERE email = 'user@example.com';
+\q
+```
+
+### Change a Username
+
+```bash
+docker exec -it pg_prediction_game psql -U pguser -d prediction_game -c "UPDATE users SET username = 'NewUsername' WHERE email = 'user@example.com';"
+```
+
+### Delete a User
+
+```bash
+docker exec -it pg_prediction_game psql -U pguser -d prediction_game -c "DELETE FROM users WHERE email = 'user@example.com';"
+```
+
+---
+
+## Event and Market Management
+
+### View Events by Sport
+
+```bash
+docker exec -it pg_prediction_game psql -U pguser -d prediction_game -c "SELECT id, name, starts_at FROM events WHERE sport = 'F1' ORDER BY starts_at;"
+```
+
+### Delete an Event (and all its markets/predictions)
+
+First get the event ID:
+
+```bash
+docker exec -it pg_prediction_game psql -U pguser -d prediction_game -c "SELECT id, sport, name FROM events ORDER BY id;"
+```
+
+Then delete by ID:
+
+```bash
+docker exec -it pg_prediction_game psql -U pguser -d prediction_game -c "DELETE FROM events WHERE id = 5;"
+```
+
+### View Market Options for a Market
+
+```bash
+docker exec -it pg_prediction_game psql -U pguser -d prediction_game -c "SELECT * FROM market_options WHERE market_id = 1;"
+```
+
+### Manually Lock a Market
+
+```bash
+docker exec -it pg_prediction_game psql -U pguser -d prediction_game -c "UPDATE markets SET status = 'LOCKED' WHERE id = 1;"
+```
+
+### Manually Resolve a Market
+
+```bash
+docker exec -it pg_prediction_game psql -U pguser -d prediction_game -c "UPDATE markets SET status = 'RESOLVED', result = 'VER' WHERE id = 1;"
+```
+
+---
+
+## API Endpoint Testing
+
+### Health Check
+
+```bash
+curl http://localhost:3000/health
+```
+
+### Register a User
+
+```bash
 curl -X POST http://localhost:3000/auth/register \
   -H "Content-Type: application/json" \
-  -d '{"email":"test1@example.com","password":"secret123"}'
+  -d '{"email":"test@example.com","username":"testuser","password":"Test123!"}'
+```
 
->> Test for the duplicate using same command
+### Login
 
->Test Login Endpoint
+```bash
 curl -X POST http://localhost:3000/auth/login \
   -H "Content-Type: application/json" \
-  -d '{"email":"test1@example.com","password":"secret123"}'
+  -d '{"email":"test@example.com","password":"Test123!"}'
+```
 
->Wrong password:
-curl -X POST http://localhost:3000/auth/login \
+Save the token from the response, then use it for authenticated requests:
+
+```bash
+TOKEN="your_jwt_token_here"
+```
+
+### Get Current User Info
+
+```bash
+curl http://localhost:3000/me \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+### Get All Events
+
+```bash
+curl http://localhost:3000/events
+```
+
+### Get Markets for an Event
+
+```bash
+curl http://localhost:3000/events/1/markets
+```
+
+### Submit a Prediction
+
+```bash
+curl -X POST http://localhost:3000/predictions \
   -H "Content-Type: application/json" \
-  -d '{"email":"test1@example.com","password":"wrongpass"}'
+  -H "Authorization: Bearer $TOKEN" \
+  -d '{"market_id": 1, "selection": "VER", "stake": 100}'
+```
 
+### Get My Predictions
 
-  -------------------------------------------------------------------------------------------
-  >Create and switch to dev branch:
-  git checkout -b dev
+```bash
+curl http://localhost:3000/predictions/me \
+  -H "Authorization: Bearer $TOKEN"
+```
 
-  >Push dev to GitHub
-  git push -u origin dev
+### Get Leaderboard
 
-  >To  Confirm branches:
-  git branch
+```bash
+curl http://localhost:3000/leaderboard
+```
 
+### Admin — Auto-Lock Past Cutoff Markets
 
-----------------------------------------------------------------------------------------------------
-To delete a market
+```bash
+curl -X POST http://localhost:3000/markets/auto-lock \
+  -H "x-admin-key: supersecretkey"
+```
 
->first get a id
-docker exec -it pg_prediction_game psql -U pguser -d prediction_game -c "SELECT id, sport, name FROM events ORDER BY id;"
+### Admin — Resolve a Market
 
-Then delete by id
-docker exec -it pg_prediction_game psql -U pguser -d prediction_game -c "DELETE FROM events WHERE id=16;"                  
+```bash
+curl -X POST http://localhost:3000/markets/1/resolve \
+  -H "Content-Type: application/json" \
+  -H "x-admin-key: supersecretkey" \
+  -d '{"result": "VER"}'
+```
 
-  
+### Admin — Get Platform Stats
+
+```bash
+curl http://localhost:3000/admin/stats \
+  -H "x-admin-key: supersecretkey"
+```
+
+---
+
+## Git Workflow
+
+### Create and Switch to Dev Branch
+
+```bash
+git checkout -b dev
+```
+
+### Push Dev Branch to GitHub
+
+```bash
+git push -u origin dev
+```
+
+### Check All Branches
+
+```bash
+git branch -a
+```
+
+### Commit and Push Changes
+
+```bash
+git add .
+git commit -m "your commit message"
+git push origin dev
+```
+
+### Merge Dev into Main (for stable releases)
+
+```bash
+git checkout main
+git merge dev
+git push origin main
+git checkout dev
+```
+
+---
+
+## Stopping and Restarting
+
+### Stop the Backend
+
+Press `Ctrl + C` in the terminal running `npm run dev`.
+
+### Stop the Frontend
+
+Press `Ctrl + C` in the terminal running `ionic serve`.
+
+### Stop the Database Container
+
+```bash
+docker compose down
+```
+
+### Stop and Remove All Docker Data (full reset)
+
+```bash
+docker compose down -v
+```
+
+**Warning:** This deletes all database data permanently.
+
+### Restart Everything
+
+```bash
+docker compose up -d
+cd backend && npm run dev
+# In a new terminal:
+cd frontend && ionic serve
+```
+
+---
+
+## Troubleshooting
+
+### Backend won't start — "Cannot find module"
+
+```bash
+cd backend
+npm install
+```
+
+### Frontend won't start — "ionic: command not found"
+
+```bash
+npm install -g @ionic/cli
+```
+
+### Database connection refused
+
+Make sure Docker is running and the container is up:
+
+```bash
+docker compose up -d
+docker ps
+```
+
+### Port 3000 already in use
+
+```bash
+lsof -i :3000
+kill -9 <PID>
+```
+
+### Port 8100 already in use
+
+```bash
+lsof -i :8100
+kill -9 <PID>
+```
+
+### Check what Postgres thinks the time is (for timezone issues)
+
+```bash
+docker exec -it pg_prediction_game psql -U pguser -d prediction_game -c "SELECT NOW();"
+```
+
+---
+
+## Notes for Examiner
+
+- The application runs entirely locally — no external server required
+- All data is stored in the Docker PostgreSQL container
+- The admin panel is accessible at `/admin-login` with the key `supersecretkey`
+- Default credits per new user: **1000.00**
+- The backend must be running before the frontend can load any data
+- Docker Desktop must be running before starting the database container
